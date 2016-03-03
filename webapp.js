@@ -7,6 +7,10 @@ var ObjectId = require('mongodb').ObjectID;
 var app = express();
 var db;
 
+var mongoUri = process.env.MONGOLAB_URI ||
+'mongodb://localhost/reliaDB';
+console.log(mongoUri);
+
 app.use(express.static('static'));
 
 app.get('/', function (req, res) {
@@ -21,38 +25,38 @@ var bugData = [
 */
 
 app.get('/api/bugs', function(req, res) {
-    console.log("Query string", req.query);
-    var filter = {};
-    if (req.query.priority)
-	filter.priority = req.query.priority;
-    if (req.query.status)
-	filter.status = req.query.status;
+  console.log("Query string", req.query);
+  var filter = {};
+  if (req.query.priority)
+   filter.priority = req.query.priority;
+ if (req.query.status)
+   filter.status = req.query.status;
 
-    db.collection("bugs").find(filter)
-	.toArray(function(err,docs){
-	res.json(docs);
-    });
+ db.collection("bugs").find(filter)
+ .toArray(function(err,docs){
+   res.json(docs);
+ });
 });
 
 app.get('/api/bugs/:id',function(req,res){
-    db.collection("bugs").find({_id:ObjectId(req.params.id)}).limit(1).next(function(err,doc){
-	res.json(doc);
-    });
+  db.collection("bugs").find({_id:ObjectId(req.params.id)}).limit(1).next(function(err,doc){
+   res.json(doc);
+ });
 });
 
 app.use(bodyParser.json());
 app.post('/api/bugs', function(req, res) {
-    console.log("Req body:",req.body);
-    var newBug = req.body;
+  console.log("Req body:",req.body);
+  var newBug = req.body;
     //newBug.id = bugData.length+1;
     //bugData.push(newBug);
     db.collection("bugs").insertOne(newBug,function(err,result){
-	var newId = result.insertedId;
-	db.collection("bugs").find({_id:newId}).limit(1).next(function(err,doc){
-	    res.json(doc);
-	});
-    });
-});
+     var newId = result.insertedId;
+     db.collection("bugs").find({_id:newId}).limit(1).next(function(err,doc){
+       res.json(doc);
+     });
+   });
+  });
 
 /* Modify one record, given its ID */
 app.put('/api/bugs/:id', function(req, res) {
@@ -66,16 +70,11 @@ app.put('/api/bugs/:id', function(req, res) {
   });
 });
 
-/*
-MongoClient.connect('mongodb://localhost/reliaDB', function(err, dbConnection) {
-    db = dbConnection;
-    var server = app.listen(3000, function () {
-	var port = server.address().port;
-	console.log("Started server at port", port);
-    });
-});
-*/
-var server = app.listen(process.env.PORT || 3000, function () {
-    var port = server.address().port;
-    console.log("Started server at port", port);
+
+MongoClient.connect(mongoUri, function(err, dbConnection) {
+  db = dbConnection;
+  var server = app.listen(process.env.PORT || 3000, function () {
+   var port = server.address().port;
+   console.log("Started server at port", port);
+ });
 });
