@@ -1,11 +1,11 @@
 
 var express = require('express');
 var bodyParser = require('body-parser');
-//var MongoClient = require('mongodb').MongoClient;
-//var ObjectId = require('mongodb').ObjectID;
+var MongoClient = require('mongodb').MongoClient;
+var ObjectId = require('mongodb').ObjectID;
 
 var app = express();
-//var db;
+var db;
 
 app.use(express.static('static'));
 
@@ -19,7 +19,7 @@ var bugData = [
   {id: 2, priority: 'P2', status:'New', owner:'Eddie', title:'Misaligned border on panel'}
 ];
 */
-/*
+
 app.get('/api/bugs', function(req, res) {
     console.log("Query string", req.query);
     var filter = {};
@@ -53,9 +53,8 @@ app.post('/api/bugs', function(req, res) {
 	});
     });
 });
-*/
+
 /* Modify one record, given its ID */
-/*
 app.put('/api/bugs/:id', function(req, res) {
   var bug = req.body;
   console.log("Modifying bug:", req.params.id, bug);
@@ -66,7 +65,7 @@ app.put('/api/bugs/:id', function(req, res) {
     });
   });
 });
-*/
+
 /*
 MongoClient.connect('mongodb://localhost/reliaDB', function(err, dbConnection) {
     db = dbConnection;
@@ -76,7 +75,7 @@ MongoClient.connect('mongodb://localhost/reliaDB', function(err, dbConnection) {
     });
 });
 */
-var server = app.listen(5000, function () {
+var server = app.listen(process.env.PORT || 3000, function () {
     var port = server.address().port;
     console.log("Started server at port", port);
 });
