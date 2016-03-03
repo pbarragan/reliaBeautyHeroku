@@ -20,7 +20,7 @@ var NoMatch = React.createClass({
 var MainPage = React.createClass({
   render: function() {
     return(
-      <h1>This will be the main page</h1>
+      <h1>This will be the main page...</h1>
       );
   }
 
