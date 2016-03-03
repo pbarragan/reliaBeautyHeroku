@@ -76,7 +76,7 @@ MongoClient.connect('mongodb://localhost/reliaDB', function(err, dbConnection) {
     });
 });
 */
-var server = app.listen(3000, function () {
+var server = app.listen(5000, function () {
     var port = server.address().port;
     console.log("Started server at port", port);
 });
