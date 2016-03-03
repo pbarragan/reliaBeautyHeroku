@@ -66,10 +66,16 @@ app.put('/api/bugs/:id', function(req, res) {
   });
 });
 
+/*
 MongoClient.connect('mongodb://localhost/reliaDB', function(err, dbConnection) {
     db = dbConnection;
     var server = app.listen(3000, function () {
 	var port = server.address().port;
 	console.log("Started server at port", port);
     });
+});
+*/
+var server = app.listen(3000, function () {
+    var port = server.address().port;
+    console.log("Started server at port", port);
 });
