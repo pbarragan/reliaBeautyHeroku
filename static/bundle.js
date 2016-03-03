@@ -37030,7 +37030,7 @@ var MainPage = React.createClass({
     return React.createElement(
       'h1',
       null,
-      'This will be the main page'
+      'This will be the main page...'
     );
   }
 
