@@ -1,0 +1,127 @@
+var BugRow = React.createClass({
+    render: function(){
+	console.log("Rendering BugRow:", this.props.bug);
+	return (
+	    <tr>
+		<td>{this.props.bug.id}</td>
+		<td>{this.props.bug.status}</td>
+		<td>{this.props.bug.priority}</td>
+		<td>{this.props.bug.owner}</td>
+		<td>{this.props.bug.title}</td>
+	    </tr>
+	);
+    }
+});
+
+var BugFilter = React.createClass({
+    render: function(){
+	console.log("Rendering BugFilter");
+	return (
+	    <div>The bug filter would come here.</div>
+	);
+    }
+});
+
+var BugTable = React.createClass({
+    render: function(){
+	console.log("Rendering bug table, num items:", this.props.bugs.length);
+	var bugRows = this.props.bugs.map(function(bug){
+	    return (
+		<BugRow key={bug.id} bug={bug}
+		/>
+	    );
+	});
+	return (
+		<table>
+		<thead>
+		<tr>
+		<th>Id</th>
+		<th>Status</th>
+		<th>Priority</th>
+		<th>Owner</th>
+		<th>Title</th>
+		</tr>
+		</thead>
+		<tbody>
+		{bugRows}
+		</tbody>
+		</table>
+	);
+    }
+});
+
+var BugAdd = React.createClass({
+    render: function(){
+	console.log("Rendering BugAdd");
+	return (
+		<div>
+		<form name="bugAdd">
+		<input type="text" name="owner" placeholder="Owner" />
+		<input type="text" name="title" placeholder="Title" />
+		<button onClick={this.handleSubmit}>Add Bug</button>
+		</form>
+		</div>
+	);
+    },
+    handleSubmit: function(e){
+	e.preventDefault();
+	var form = document.forms.bugAdd;
+	this.props.addBugFunc({id:this.props.nextBug,owner: form.owner.value, title: form.title.value, status: 'New', priority: 'P1'});
+	// clear the form for the next input
+	form.owner.value = ""; form.title.value = "";
+    }
+});
+
+var BugList = React.createClass({
+    getInitialState: function(){
+	return {bugs: []};
+    },
+    componentDidMount: function(){
+	this.serverRequest = $.get('/api/bugs', function (result) {
+	    this.setState({bugs:result});
+	}.bind(this));
+    },
+    render: function(){
+	console.log("Rendering bug list, num items:", this.state.bugs.length);
+	return (
+	    <div>
+		<h1>Bug Tracker</h1>
+		<BugFilter />
+		<hr />
+		<BugTable bugs={this.state.bugs}/>
+		<hr />
+		<BugAdd nextBug={this.state.bugs.length+1} 
+	    addBugFunc={this.addBug}/>
+	    </div>
+	);
+    },
+    /*
+    testNewBug: function(){
+	var nextId = this.state.bugs.length+1;
+	this.addBug({id: nextId, priority: 'P2', status:'New', owner:'Pieta', title:'Warning on console'});
+	},
+    */
+    addBug: function(bug){
+	console.log("Adding bug:", bug);
+	$.ajax({
+	    url: '/api/bugs',
+	    contentType: 'application/json',
+	    type: 'POST',
+	    data: JSON.stringify(bug),
+	    success: function(data) {
+		var bug = data;
+		// We're advised not to modify the state, it's immutable. So, make a copy.
+		var bugsModified = this.state.bugs.concat(bug);
+		this.setState({bugs: bugsModified});	    
+	    }.bind(this),
+	    error: function(xhr, status, err) {
+		// ideally, show error to user.
+		console.log("Error adding bug:", err);	    
+	    }.bind(this)
+	});
+    }
+});
+ReactDOM.render(
+   <BugList />,
+    document.getElementById('main')
+);
