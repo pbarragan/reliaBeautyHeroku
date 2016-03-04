@@ -37046,6 +37046,8 @@ ReactDOM.render(React.createElement(
   React.createElement(Route, { path: '*', component: NoMatch })
 ), document.getElementById('main'));
 
+module.exports = MainPage;
+
 },{"./BugEdit":290,"./BugList":292,"react":285,"react-dom":117,"react-router":150}],289:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
@@ -37096,6 +37098,8 @@ var Button = require('react-bootstrap/lib/Button');
 var ButtonToolbar = require('react-bootstrap/lib/ButtonToolbar');
 var Alert = require('react-bootstrap/lib/Alert');
 
+var MainPage = require('./App');
+
 var BugEdit = React.createClass({
   displayName: 'BugEdit',
 
@@ -37108,6 +37112,7 @@ var BugEdit = React.createClass({
     return React.createElement(
       'div',
       { style: { maxWidth: 600 } },
+      React.createElement(MainPage, null),
       React.createElement(
         Panel,
         { header: "Edit bug: " + this.props.params.id },
@@ -37244,7 +37249,7 @@ var BugEdit = React.createClass({
 
 module.exports = BugEdit;
 
-},{"jquery":93,"react":285,"react-bootstrap/lib/Alert":96,"react-bootstrap/lib/Button":97,"react-bootstrap/lib/ButtonToolbar":99,"react-bootstrap/lib/Input":107,"react-bootstrap/lib/Panel":109,"react-dom":117,"react-router":150}],291:[function(require,module,exports){
+},{"./App":288,"jquery":93,"react":285,"react-bootstrap/lib/Alert":96,"react-bootstrap/lib/Button":97,"react-bootstrap/lib/ButtonToolbar":99,"react-bootstrap/lib/Input":107,"react-bootstrap/lib/Panel":109,"react-dom":117,"react-router":150}],291:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 
@@ -37494,6 +37499,7 @@ var BugList = React.createClass({
     return React.createElement(
       'div',
       null,
+      React.createElement(MainPage, null),
       React.createElement(
         'h1',
         null,

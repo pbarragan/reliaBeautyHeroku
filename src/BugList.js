@@ -15,15 +15,15 @@ var BugRow = React.createClass({
     console.log("Rendering BugRow:", this.props.bug);
     return (
       <tr>
-        <td>
-	    <Link to={'/bugs/' + this.props.bug._id}>{this.props.bug._id}</Link>
-	</td>
-        <td>{this.props.bug.status}</td>
-        <td>{this.props.bug.priority}</td>
-        <td>{this.props.bug.owner}</td>
-        <td>{this.props.bug.title}</td>
+      <td>
+      <Link to={'/bugs/' + this.props.bug._id}>{this.props.bug._id}</Link>
+      </td>
+      <td>{this.props.bug.status}</td>
+      <td>{this.props.bug.priority}</td>
+      <td>{this.props.bug.owner}</td>
+      <td>{this.props.bug.title}</td>
       </tr>
-    )
+      )
   }
 });
 
@@ -34,23 +34,23 @@ var BugTable = React.createClass({
       return <BugRow key={bug._id} bug={bug} />
     });
     return (
-	<Panel>
-      <Table striped bordered condensed>
-        <thead>
-          <tr>
-            <th>Id</th>
-            <th>Status</th>
-            <th>Priority</th>
-            <th>Owner</th>
-            <th>Title</th>
-          </tr>
-        </thead>
-        <tbody>
-          {bugRows}
-        </tbody>
-      </Table>
-	    </Panel>
-    )
+     <Panel>
+     <Table striped bordered condensed>
+     <thead>
+     <tr>
+     <th>Id</th>
+     <th>Status</th>
+     <th>Priority</th>
+     <th>Owner</th>
+     <th>Title</th>
+     </tr>
+     </thead>
+     <tbody>
+     {bugRows}
+     </tbody>
+     </Table>
+     </Panel>
+     )
   }
 });
 
@@ -62,20 +62,21 @@ var BugList = React.createClass({
     console.log("Rendering bug list, num items:", this.state.bugs.length);
     return (
       <div>
-        <h1>Bug Tracker</h1>
-        <BugFilter submitHandler={this.changeFilter} 
-	initFilter={this.props.location.query}/>
-        <hr />
-        <BugTable bugs={this.state.bugs}/>
-        <hr />
-        <BugAdd addBug={this.addBug} />
+      <MainPage />
+      <h1>Bug Tracker</h1>
+      <BugFilter submitHandler={this.changeFilter} 
+      initFilter={this.props.location.query}/>
+      <hr />
+      <BugTable bugs={this.state.bugs}/>
+      <hr />
+      <BugAdd addBug={this.addBug} />
       </div>
-    )
+      )
   },
 
   componentDidMount: function() {
-      console.log("BugList: componentDidMount");
-      this.loadData({});
+    console.log("BugList: componentDidMount");
+    this.loadData({});
   },
 
   addBug: function(bug) {
@@ -95,31 +96,31 @@ var BugList = React.createClass({
       }
     });
   },
-    changeFilter: function(newFilter){
-	this.props.history.push({search: '?' + $.param(newFilter)});
+  changeFilter: function(newFilter){
+   this.props.history.push({search: '?' + $.param(newFilter)});
 	//this.props.loadData(newFilter);
-    },
-    loadData: function(){
+},
+loadData: function(){
 	//'?'+filter.priority etc etc
 	var query = this.props.location.query || {};
 	var filter = {priority: query.priority, status: query.status};
 	$.ajax('/api/bugs',{data: filter}).done(function(data) {
-	    this.setState({bugs: data});
-	}.bind(this));
+   this.setState({bugs: data});
+ }.bind(this));
 	// In production, we'd also handle errors.
-    },
-    componentDidUpdate: function(prevProps){
+},
+componentDidUpdate: function(prevProps){
 	var oldQuery = prevProps.location.query;
 	var newQuery = this.props.location.query;
 	if (oldQuery.priority === newQuery.priority &&
-            oldQuery.status === newQuery.status) {
-	    console.log("BugList: componentDidUpdate, no change in filter, not updating");
-	    return;
-	} else {
-	    console.log("BugList: componentDidUpdate, loading data with new filter");
-	    this.loadData();
-	}
-    }
+    oldQuery.status === newQuery.status) {
+   console.log("BugList: componentDidUpdate, no change in filter, not updating");
+ return;
+} else {
+ console.log("BugList: componentDidUpdate, loading data with new filter");
+ this.loadData();
+}
+}
 });
 
 module.exports = BugList;

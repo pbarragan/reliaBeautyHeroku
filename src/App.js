@@ -38,3 +38,5 @@ ReactDOM.render(
   ),
   document.getElementById('main')
 );
+
+module.exports = MainPage;
