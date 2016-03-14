@@ -10,8 +10,7 @@ var Button  = require('react-bootstrap/lib/Button');
 var ButtonToolbar = require('react-bootstrap/lib/ButtonToolbar');
 var Alert = require('react-bootstrap/lib/Alert');
 
-var MainPage = require('./App');
-
+var NavBarC = require('./NavBarC');
 
 var BugEdit = React.createClass({
   render: function() {
@@ -22,7 +21,7 @@ var BugEdit = React.createClass({
      );
     return (
       <div style={{maxWidth:600}}>
-      <MainPage />
+      <NavBarC brand={"ReliaBeauty"} navItems={ ['How', 'Now', 'Brown', 'Cow'] } />
       <Panel header={"Edit bug: "+this.props.params.id}>
       <form onSubmit={this.submit}>
       <Input type="select" label="Priority" value={this.state.priority} onChange={this.onChangePriority}>

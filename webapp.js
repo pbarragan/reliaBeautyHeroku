@@ -73,7 +73,7 @@ app.put('/api/bugs/:id', function(req, res) {
 
 MongoClient.connect(mongoUri, function(err, dbConnection) {
   db = dbConnection;
-  var server = app.listen(process.env.PORT || 3000, function () {
+  var server = app.listen(process.env.PORT || 5000, function () {
    var port = server.address().port;
    console.log("Started server at port", port);
  });

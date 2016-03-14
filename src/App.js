@@ -8,6 +8,7 @@ var hashHistory = require('react-router').hashHistory;
 
 var BugList = require('./BugList');
 var BugEdit = require('./BugEdit');
+var LandingPageC = require('./LandingPageC');
 
 var NoMatch = React.createClass({
   render: function() {
@@ -17,19 +18,10 @@ var NoMatch = React.createClass({
   }
 });
 
-var MainPage = React.createClass({
-  render: function() {
-    return(
-      <h1>This will be the main page...</h1>
-      );
-  }
-
-});
-
 ReactDOM.render(
   (
     <Router history={hashHistory}>
-      <Route path="/index" component={MainPage} />
+      <Route path="/index" component={LandingPageC} />
       <Route path="/bugs" component={BugList} />
       <Route path="/bugs/:id" component={BugEdit} />
       <Redirect from="/" to="/index" />
@@ -38,5 +30,3 @@ ReactDOM.render(
   ),
   document.getElementById('main')
 );
-
-module.exports = MainPage;

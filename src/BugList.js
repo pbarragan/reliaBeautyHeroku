@@ -9,6 +9,7 @@ var Table = require('react-bootstrap/lib/Table');
 
 var BugFilter = require('./BugFilter');
 var BugAdd = require('./BugAdd');
+var NavBarC = require('./NavBarC');
 
 var BugRow = React.createClass({
   render: function() {
@@ -62,7 +63,7 @@ var BugList = React.createClass({
     console.log("Rendering bug list, num items:", this.state.bugs.length);
     return (
       <div>
-      <MainPage />
+      <NavBarC brand={"ReliaBeauty"} navItems={ ['How', 'Now', 'Brown', 'Cow'] } />
       <h1>Bug Tracker</h1>
       <BugFilter submitHandler={this.changeFilter} 
       initFilter={this.props.location.query}/>
