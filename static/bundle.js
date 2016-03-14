@@ -45212,7 +45212,7 @@ var ForgotModalC = React.createClass({
       paddingTop: "0px",
       paddingBottom: "0px",
       borderRadius: 25 * radiusScale + "em",
-      marginTop: "0.5em"
+      marginTop: "0.25em"
     };
 
     var enterLineStyle = {
