@@ -2,7 +2,7 @@ var React = require('react');
 var ReactDOM = require('react-dom');
 var $ = require('jquery');
 var Link = require('react-router').Link;
-
+var auth = require('./../app/authentication');
 
 //var Panel = require('react-bootstrap/lib/Panel');
 var Input = require('react-bootstrap/lib/Input');
@@ -23,8 +23,28 @@ var WelcomeModalC = require('./WelcomeModalC');
 var ForgotModalC = require('./ForgotModalC');
 
 var LandingPageC = React.createClass({
+  contextTypes: {
+    router: React.PropTypes.object.isRequired
+  },
+  submitLogout: function() {
+    console.log('I clicked logout');
+    auth.logout(  () => {
+      this.setState({ loggedIn: auth.loggedIn() });
+      const { location } = this.props;
+      if (location && location.state && location.state.nextPathname) {
+          console.log('i am in the nextPathName');
+          this.context.router.replace(location.state.nextPathname)
+        } else {
+          console.log('i am in the index after logout');
+          this.context.router.replace('/index')
+        }
+      });
+  },
+
   getInitialState: function() {
-    return { showWelcomeModal: false, showForgotModal: false };
+    console.log('LandingPage: get initial state loggedIn is: ', auth.loggedIn());
+    return { showWelcomeModal: false, showForgotModal: false,
+      loggedIn: auth.loggedIn() };
   },
 
   closeWelcome: function() {
@@ -42,7 +62,9 @@ var LandingPageC = React.createClass({
     this.setState({ showWelcomeModal: false, showForgotModal: true });
   },
   render: function() {
-    console.log('LandingPage: Rendering')
+    console.log('LandingPage: Rendering');
+    console.log('When the landing page rendered, loggedIn is:',this.state.loggedIn);
+    console.log('Auth says loggedIn is: ',auth.loggedIn());
     var backgroundImage = './img/landingPage.jpg';
     
     var baseSize = 175; // pt
@@ -202,8 +224,11 @@ var LandingPageC = React.createClass({
                   Already a member?
                 </span>                
                 <span>
+                {this.state.loggedIn ?
                   <Button style={signInLineStyle}
-                  bsStyle="link" onClick={this.openWelcome}>Sign in</Button>
+                  bsStyle="link" onClick={this.submitLogout}>Logout</Button>:
+                  <Button style={signInLineStyle}
+                  bsStyle="link" onClick={this.openWelcome}>Sign in</Button>}
                 </span>
               </div>
             </Col>
@@ -215,23 +240,13 @@ var LandingPageC = React.createClass({
 
         <ForgotModalC showForgotModal={this.state.showForgotModal} 
           closeForgot={this.closeForgot}/>
-
+        <div style={{position:"absolute",top:0,right:0}}>
+          {this.state.loggedIn ? "Logged In":"Not Logged In"}
+        </div>
       </FullscreenC>
       );
 
   }
-
-  /*
-  componentDidMount: function() {
-    console.log("LandingPage: componentDidMount");
-    console.log('Things are changing');
-    console.log(this.props);
-    console.log(this.props.setBackgroundImage);
-    console.log('well');
-    this.props.setBackgroundImage('./img/landingPage.jpg');
-    console.log("LandingPage: sent new background image")
-  }
-  */
 
 });
 /*

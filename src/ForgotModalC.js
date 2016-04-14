@@ -2,6 +2,7 @@ var React = require('react');
 var ReactDOM = require('react-dom');
 var $ = require('jquery');
 var Link = require('react-router').Link;
+var auth = require('./../app/authentication');
 
 
 //var Panel = require('react-bootstrap/lib/Panel');
@@ -25,9 +26,60 @@ var FullscreenC = require('./FullscreenC');
 var SearchBoxC = require('./SearchBoxC');
 
 var ForgotModalC = React.createClass({
+  contextTypes: {
+    router: React.PropTypes.object.isRequired
+  },
+  getInitialState: function() {
+      return {
+        disabled: false,
+        error: false,
+        errorMessage: ''
+      }
+    },
+  submitForgot: function(e){
+    console.log('I am trying to submit forgot');
+    e.preventDefault();
+    this.setState({ disabled: true });
+    //console.log(this.refs.email.getValue());
+    //console.log(this.refs.password.getValue());
+
+    
+    auth.forgot(this.refs.email.getValue(), 
+      (succeeded,message) => {
+        this.setState({ disabled: false });
+        if (!succeeded)
+          console.log("Forgot Failed");
+        else console.log("Forgot succeeded");
+
+        if (!succeeded)
+          return this.setState({ error: true , errorMessage: message})
+
+
+        console.log('at the routing section in ForgotModalC');
+        const { location } = this.props;
+        console.log(location);
+        //console.log(location.state);
+        if (location && location.state && location.state.nextPathname) {
+          console.log('i am in the nextPathName');
+          this.context.router.replace(location.state.nextPathname)
+        } else {
+          console.log('i am in the index');
+          this.hideForgotModal();
+          this.context.router.replace('/index')
+        }
+
+      });
+
+      console.log('got past the signup call');
+  },
+
+  hideForgotModal: function(){
+    this.setState({ error: false });
+    this.props.closeForgot();
+  },
 
   render: function() {
-    console.log('WelcomeModalC: Rendering')
+    console.log('ForgotModalC: Rendering')
     
     var baseSize = 175; // pt
     //var defaultSize = 14; // px
@@ -102,8 +154,10 @@ var ForgotModalC = React.createClass({
       marginBottom: 0.5+"em"
     };
 
+    var disabled = this.state.disabled ? true:false;
+    var disabledText = this.state.disabled ? 'Sending email...':'Submit';
     return (
-      <Modal show={this.props.showForgotModal} onHide={this.props.closeForgot} 
+      <Modal show={this.props.showForgotModal} onHide={this.hideForgotModal} 
         dialogClassName="modal-dialog-vertical-align welcome-modal">
         <Modal.Header closeButton className="welcome-modal-header-style">
           <Modal.Title>
@@ -117,10 +171,14 @@ var ForgotModalC = React.createClass({
           <div style={enterLineStyle}>
             Enter your email to receive your password
           </div>
-          <form>
-            <Input type="email" placeholder="Email" style={textInputStyle}/>
+          <form onSubmit={this.submitForgot}>
+            <Input type="email" placeholder="Email" ref="email" style={textInputStyle}/>
             <div style={{display:"table",margin:"0 auto"}}>
-              <ButtonInput type="submit" value="Submit" bsSize="large" style={submitButtonStyle}/>
+              <ButtonInput type="submit" value={disabledText} bsSize="large" 
+              style={submitButtonStyle} disabled={disabled}/>
+            </div>
+            <div style={{position:"absolute",top:"40%",right:"20%",color:"red"}}>
+              {this.state.error ? this.state.errorMessage : ''}
             </div>
           </form>
           </div>

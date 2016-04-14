@@ -38,7 +38,8 @@ var FullscreenC = React.createClass({
       height: "100%",
       backgroundImage: 'url('+bgDefaultImg+')'
     };
-    console.log('FullscreenC: About to map')
+    
+    //console.log('FullscreenC: About to map')
 
     /*
     // Pass the setBackgroundImage function to the children

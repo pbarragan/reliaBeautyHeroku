@@ -2,7 +2,7 @@ var React = require('react');
 var ReactDOM = require('react-dom');
 var $ = require('jquery');
 var Link = require('react-router').Link;
-
+var auth = require('./../app/authentication');
 
 //var Panel = require('react-bootstrap/lib/Panel');
 var Image = require('react-bootstrap/lib/Image')
@@ -25,7 +25,53 @@ var FullscreenC = require('./FullscreenC');
 var SearchBoxC = require('./SearchBoxC');
 
 var WelcomeModalC = React.createClass({
+  contextTypes: {
+    router: React.PropTypes.object.isRequired
+  },
+  getInitialState: function() {
+      return {
+        error: false,
+        errorMessage: ''
+      }
+    },
+  submitSignIn: function(e){
+    console.log('I am trying to sign in');
+    e.preventDefault();
 
+    //console.log(this.refs.email.getValue());
+    //console.log(this.refs.password.getValue());
+
+    
+    auth.login(this.refs.email.getValue(), this.refs.password.getValue(), 
+      (loggedIn,message) => {
+        if (!loggedIn)
+          console.log("Login Failed");
+        else console.log("Login succeeded");
+
+        if (!loggedIn)
+          return this.setState({ error: true , errorMessage: message});
+
+
+        console.log('at the routing section in WelcomeModalC');
+        const { location } = this.props;
+        console.log(location);
+        //console.log(location.state);
+        if (location && location.state && location.state.nextPathname) {
+          console.log('i am in the nextPathName');
+          this.context.router.replace(location.state.nextPathname)
+        } else {
+          console.log('i am in the profile');
+          this.context.router.replace('/profile')
+        }
+
+      });
+
+      console.log('got past the signup call');
+  },
+  hideWelcomeModal: function(){
+    this.setState({ error: false });
+    this.props.closeWelcome();
+  },
   render: function() {
     console.log('WelcomeModalC: Rendering')
     
@@ -142,7 +188,7 @@ var WelcomeModalC = React.createClass({
     };
 
     return (
-      <Modal show={this.props.showWelcomeModal} onHide={this.props.closeWelcome} 
+      <Modal show={this.props.showWelcomeModal} onHide={this.hideWelcomeModal} 
         dialogClassName="modal-dialog-vertical-align welcome-modal">
         <Modal.Header closeButton className="welcome-modal-header-style">
           <Modal.Title>
@@ -153,9 +199,11 @@ var WelcomeModalC = React.createClass({
         </Modal.Header>
         <Modal.Body className="welcome-modal-body-style">
           <div style={{marginRight:"4em",marginLeft:"4em"}}>
-          <form>
-            <Input type="email" placeholder="Email" style={textInputStyle}/>
-            <Input type="password" placeholder="Password" style={pwInputStyle}/>
+          <form onSubmit={this.submitSignIn}>
+            <Input type="email" placeholder="Email" ref="email" 
+              style={textInputStyle}/>
+            <Input type="password" placeholder="Password" ref="password"
+              style={pwInputStyle}/>
             <div style={{textAlign:"right"}}>
               <Button style={forgotPWLineStyle}
                 bsStyle="link" onClick={this.props.openForgot}>
@@ -163,13 +211,17 @@ var WelcomeModalC = React.createClass({
               </Button>
             </div>
             <div style={{display:"table",margin:"0 auto"}}>
-              <ButtonInput type="submit" value="Sign in" bsSize="large" style={signInButtonStyle}/>
+              <ButtonInput type="submit" value="Sign in" bsSize="large" 
+                style={signInButtonStyle} />
+              <div style={{position:"absolute",top:"60%",right:"35%",color:"red"}}>
+                {this.state.error ? this.state.errorMessage : ''}
+              </div>
             </div>
-            <Button type="submit" style={fbButtonStyle}>
+          </form>
+            <Button type="submit" style={fbButtonStyle} href="/auth/facebook">
               <Image src="./img/facebookButton.png" responsive />
               <span style={fbLineStyle}>Sign in with Facebook</span>
             </Button>
-          </form>
           </div>
         </Modal.Body>
       </Modal>
@@ -178,3 +230,9 @@ var WelcomeModalC = React.createClass({
 });
 
 module.exports = WelcomeModalC;
+
+/*
+ <div style={{position:"absolute",top:0,right:0}}>
+              {this.state.error ? "Error":"No error"}
+            </div>
+            */
