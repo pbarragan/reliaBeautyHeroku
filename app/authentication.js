@@ -128,6 +128,7 @@ module.exports = {
         console.log('i finished the ajax call');
     },
 
+    /*
   loginFacebook(code, cb) {
       //this.onChange();
       console.log('im in the login facebook function');
@@ -159,6 +160,12 @@ module.exports = {
         );
         console.log('i finished the ajax call');
     },
+    */
+
+  loginFacebook(token,cb){
+    localStorage.token = token;
+    if (cb) cb();
+  },
 
   forgot(email, cb) {
       //this.onChange();

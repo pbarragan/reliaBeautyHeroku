@@ -232,7 +232,7 @@ app.put('/api/bugs/:id', function(req, res) {
     // facebook -------------------------------
 
         // send to facebook to do the authentication
-        app.post('/auth/facebook', passport.authenticate('facebook', { scope : 'email' }));
+        app.get('/auth/facebook', passport.authenticate('facebook', { scope : 'email' }));
 
         // handle the callback after facebook has authenticated the user
         app.get('/auth/facebook/callback',function(req, res, next) {
@@ -244,7 +244,8 @@ app.put('/api/bugs/:id', function(req, res) {
                 console.log(user);
                 //console.log(req.login);
                 //console.log(req.login.toString());
-                res.status(400).send(info);
+                res.redirect('/#/index');
+                //res.status(400).send(info);
             } else {
                 console.log('got here instead');
                 // Remove sensitive data before login
@@ -264,9 +265,21 @@ app.put('/api/bugs/:id', function(req, res) {
                         var token = jwt.sign(user, app.get('superSecret'), {
                             expiresInMinutes: 1440 // expires in 24 hours
                         });
-                        //res.redirect('/#/profile');
+                        res.redirect('/#/facebookcallback?token='+token);
                         console.log('i think we logged in via facebook');
-                        res.json({user: user,token: token});
+                        //res.json({user: user,token: token});
+                        /*
+                          var options = {
+                            root: __dirname + '/static/',
+                            dotfiles: 'deny',
+                            headers: {
+                                'x-timestamp': Date.now(),
+                                'x-sent': true
+                            }
+                        };
+                        res.sendFile('index.html',options);
+                        */
+                        //res.sendFile('/static/index.html', {root: __dirname});
                     }
                 });
             }
@@ -455,6 +468,8 @@ app.put('/api/bugs/:id', function(req, res) {
 
     // get user info route
     app.get('/api/user', verifyToken, function(req,res) {
+        console.log(req.decoded);
+        console.log(req.decoded._doc);
         res.status(200).send({ 
         success: true, 
         message: 'Token worked, I think.' 
@@ -605,7 +620,6 @@ app.put('/api/bugs/:id', function(req, res) {
           });
     });
     
-};
 
 // route middleware to ensure user is logged in
 function isLoggedIn(req, res, next) {
@@ -650,3 +664,5 @@ function verifyToken(req,res,next) {
     
   }
 }
+
+};

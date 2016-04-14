@@ -159,7 +159,7 @@ module.exports = function(passport) {
         console.log('in callback for facebook strategy');
         // asynchronous
         process.nextTick(function() {
-
+            console.log('did I get in to the facebook strategy');
             // check if the user is already logged in
             if (!req.user) {
 

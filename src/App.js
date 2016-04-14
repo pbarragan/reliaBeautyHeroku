@@ -15,6 +15,7 @@ var LandingPageC = require('./LandingPageC');
 var AuthContainerC = require('./AuthContainerC');
 var SignupC = require('./SignupC');
 var ResetC = require('./ResetC');
+var FBCallbackC = require('./FBCallbackC');
 
 var $ = require('jquery');
 
@@ -78,6 +79,7 @@ var NotLoggedIn = React.createClass({
   }
 });
 
+/*
 var FBCallbackC = React.createClass({
   componentWillMount: function(){
     console.log('the code is')
@@ -100,6 +102,7 @@ var FBCallbackC = React.createClass({
         }
       )
   */
+  /*
         $.ajax({
         url: '/auth/facebook', 
         type: 'POST', 
@@ -123,11 +126,21 @@ var FBCallbackC = React.createClass({
     );
   }
 });
+*/
 
 function requireAuth(nextState, replace) {
   if (!auth.loggedIn()) {
     replace({
       pathname: '/notloggedin',
+      state: { nextPathname: nextState.location.pathname }
+    })
+  }
+}
+
+function requireLoggedOut(nextState, replace) {
+  if (auth.loggedIn()) {
+    replace({
+      pathname: '/index',
       state: { nextPathname: nextState.location.pathname }
     })
   }
@@ -146,10 +159,9 @@ ReactDOM.render(
   (
     <Router history={hashHistory}>
       <Redirect from="/" to="/index" />
-
       <Route path="/" component={AuthContainerC}>
         <Route path="/index" component={LandingPageC} />
-        <Route path="/signup" component={SignupC} />
+        <Route path="/signup" component={SignupC} onEnter={requireLoggedOut}/>
         <Route path="/logout" component={LogoutC} />
         <Route path="/profile" component={Profile} onEnter={requireAuth} />
         <Route path="/notloggedin" component={NotLoggedIn} />

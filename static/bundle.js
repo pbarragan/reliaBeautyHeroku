@@ -122,33 +122,41 @@ module.exports = {
     console.log('i finished the ajax call');
   },
 
+  /*
   loginFacebook(code, cb) {
     //this.onChange();
     console.log('im in the login facebook function');
-    var request = { email: email, password: pass };
+    var request = {email: email, password: pass};
     cb = arguments[arguments.length - 1];
-
-    console.log('i got to the ajax call');
-
-    console.log(request);
+     console.log('i got to the ajax call');
+     console.log(request);
     $.ajax({
-      url: '/auth/facebook/callback?code=' + code,
+      url: '/auth/facebook/callback?code='+code, 
       type: 'GET'
-    }).then(function (data) {
-      console.log('im in then');
-      console.log(data);
-      localStorage.token = data.token;
-      if (cb) cb(true, '');
-      this.onChange(true);
-    }, function (data) {
-      console.log('im in then 2');
-      console.log(data);
-      console.log(cb);
-      console.log(cb.toString());
-      if (cb) cb(false, data.responseJSON.message);
-      this.onChange(false);
-    });
-    console.log('i finished the ajax call');
+    })
+    .then(function (data)  {
+        console.log('im in then');
+        console.log(data);
+        localStorage.token = data.token;
+        if (cb) cb(true,'');
+        this.onChange(true);
+      },
+      function (data)  {
+        console.log('im in then 2');
+        console.log(data);
+        console.log(cb);
+        console.log(cb.toString());
+        if (cb) cb(false,data.responseJSON.message);
+        this.onChange(false);
+      }
+      );
+      console.log('i finished the ajax call');
+  },
+  */
+
+  loginFacebook(token, cb) {
+    localStorage.token = token;
+    if (cb) cb();
   },
 
   forgot(email, cb) {
@@ -44869,6 +44877,7 @@ var LandingPageC = require('./LandingPageC');
 var AuthContainerC = require('./AuthContainerC');
 var SignupC = require('./SignupC');
 var ResetC = require('./ResetC');
+var FBCallbackC = require('./FBCallbackC');
 
 var $ = require('jquery');
 
@@ -44953,56 +44962,68 @@ var NotLoggedIn = React.createClass({
   }
 });
 
+/*
 var FBCallbackC = React.createClass({
-  displayName: 'FBCallbackC',
-
-  componentWillMount: function () {
-    console.log('the code is');
-    console.log(this.props);
-    console.log(this.props.params.code);
+  componentWillMount: function(){
+    console.log('the code is')
+    console.log(this.props)
+    console.log(this.props.params.code)
     //$.ajax('/auth/facebook').then(function(data){console.log('eureka')});
     /*
-    $.ajax({
+  $.ajax({
         url: '/auth/facebook', 
         type: 'GET', 
       })
       .then(function (data)  {
           console.log('im in then');
           console.log(data);
-         },
+
+        },
         function (data)  {
           console.log('im in then 2');
           console.log(data);
         }
       )
-    */
-    $.ajax({
-      url: '/auth/facebook',
-      type: 'POST',
-      contentType: 'application/json',
-      data: JSON.stringify({ hello: "hello" }),
+  */
+/*
+      $.ajax({
+      url: '/auth/facebook', 
+      type: 'POST', 
+      contentType:'application/json',
+      data: JSON.stringify({hello:"hello"}),
       dataType: 'json'
-    }).then(function (data) {
-      console.log('im in then');
-      console.log(data);
-    }, function (data) {
-      console.log('im in then 2');
-      console.log(data);
-    });
-  },
-  render: function () {
-    return React.createElement(
-      'h2',
-      null,
-      'Facebook callback'
+    })
+    .then(function (data)  {
+        console.log('im in then');
+        console.log(data);
+      },
+      function (data)  {
+        console.log('im in then 2');
+        console.log(data);
+      }
     );
-  }
+},
+render: function() {
+  return (
+    <h2>Facebook callback</h2>
+  );
+}
 });
+*/
 
 function requireAuth(nextState, replace) {
   if (!auth.loggedIn()) {
     replace({
       pathname: '/notloggedin',
+      state: { nextPathname: nextState.location.pathname }
+    });
+  }
+}
+
+function requireLoggedOut(nextState, replace) {
+  if (auth.loggedIn()) {
+    replace({
+      pathname: '/index',
       state: { nextPathname: nextState.location.pathname }
     });
   }
@@ -45025,7 +45046,7 @@ ReactDOM.render(React.createElement(
     Route,
     { path: '/', component: AuthContainerC },
     React.createElement(Route, { path: '/index', component: LandingPageC }),
-    React.createElement(Route, { path: '/signup', component: SignupC }),
+    React.createElement(Route, { path: '/signup', component: SignupC, onEnter: requireLoggedOut }),
     React.createElement(Route, { path: '/logout', component: LogoutC }),
     React.createElement(Route, { path: '/profile', component: Profile, onEnter: requireAuth }),
     React.createElement(Route, { path: '/notloggedin', component: NotLoggedIn }),
@@ -45038,7 +45059,7 @@ ReactDOM.render(React.createElement(
   )
 ), document.getElementById('main'));
 
-},{"./../app/authentication":1,"./AuthContainerC":419,"./BugEdit":421,"./BugList":423,"./LandingPageC":426,"./ResetC":428,"./SignupC":430,"jquery":107,"react":412,"react-bootstrap/lib/Button":181,"react-dom":228,"react-router":277}],419:[function(require,module,exports){
+},{"./../app/authentication":1,"./AuthContainerC":419,"./BugEdit":421,"./BugList":423,"./FBCallbackC":424,"./LandingPageC":427,"./ResetC":429,"./SignupC":431,"jquery":107,"react":412,"react-bootstrap/lib/Button":181,"react-dom":228,"react-router":277}],419:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 var auth = require('./../app/authentication');
@@ -45280,7 +45301,7 @@ var BugEdit = React.createClass({
 
 module.exports = BugEdit;
 
-},{"./NavBarC":427,"jquery":107,"react":412,"react-bootstrap/lib/Alert":180,"react-bootstrap/lib/Button":181,"react-bootstrap/lib/ButtonToolbar":184,"react-bootstrap/lib/Input":198,"react-bootstrap/lib/Panel":215,"react-dom":228,"react-router":277}],422:[function(require,module,exports){
+},{"./NavBarC":428,"jquery":107,"react":412,"react-bootstrap/lib/Alert":180,"react-bootstrap/lib/Button":181,"react-bootstrap/lib/ButtonToolbar":184,"react-bootstrap/lib/Input":198,"react-bootstrap/lib/Panel":215,"react-dom":228,"react-router":277}],422:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 
@@ -45596,7 +45617,48 @@ var BugList = React.createClass({
 
 module.exports = BugList;
 
-},{"./BugAdd":420,"./BugFilter":422,"./NavBarC":427,"jquery":107,"react":412,"react-bootstrap/lib/Panel":215,"react-bootstrap/lib/Table":218,"react-dom":228,"react-router":277}],424:[function(require,module,exports){
+},{"./BugAdd":420,"./BugFilter":422,"./NavBarC":428,"jquery":107,"react":412,"react-bootstrap/lib/Panel":215,"react-bootstrap/lib/Table":218,"react-dom":228,"react-router":277}],424:[function(require,module,exports){
+var React = require('react');
+var ReactDOM = require('react-dom');
+var $ = require('jquery');
+var auth = require('./../app/authentication');
+
+var FBCallbackC = React.createClass({
+  displayName: 'FBCallbackC',
+
+  contextTypes: {
+    router: React.PropTypes.object.isRequired
+  },
+
+  componentWillMount: function () {
+    console.log('URL params');
+    console.log(this.props.params);
+    console.log(this.props.location);
+    auth.loginFacebook(this.props.location.query.token, () => {
+      console.log('at the routing section in FBCallbackC');
+      const { location } = this.props;
+      console.log(location);
+      //console.log(location.state);
+      if (location && location.state && location.state.nextPathname) {
+        console.log('i am in the nextPathName');
+        this.context.router.replace(location.state.nextPathname);
+      } else {
+        console.log('i am in the profile');
+        this.context.router.replace('/profile');
+      }
+    });
+  },
+
+  render: function () {
+
+    return React.createElement('div', null);
+  }
+
+});
+
+module.exports = FBCallbackC;
+
+},{"./../app/authentication":1,"jquery":107,"react":412,"react-dom":228}],425:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 var $ = require('jquery');
@@ -45801,7 +45863,7 @@ var ForgotModalC = React.createClass({
 
 module.exports = ForgotModalC;
 
-},{"./../app/authentication":1,"./FullscreenC":425,"./SearchBoxC":429,"jquery":107,"react":412,"react-bootstrap/lib/Button":181,"react-bootstrap/lib/ButtonGroup":182,"react-bootstrap/lib/ButtonInput":183,"react-bootstrap/lib/ButtonToolbar":184,"react-bootstrap/lib/Col":185,"react-bootstrap/lib/DropdownButton":188,"react-bootstrap/lib/Grid":196,"react-bootstrap/lib/Image":197,"react-bootstrap/lib/Input":198,"react-bootstrap/lib/MenuItem":200,"react-bootstrap/lib/Modal":201,"react-bootstrap/lib/Row":216,"react-dom":228,"react-router":277}],425:[function(require,module,exports){
+},{"./../app/authentication":1,"./FullscreenC":426,"./SearchBoxC":430,"jquery":107,"react":412,"react-bootstrap/lib/Button":181,"react-bootstrap/lib/ButtonGroup":182,"react-bootstrap/lib/ButtonInput":183,"react-bootstrap/lib/ButtonToolbar":184,"react-bootstrap/lib/Col":185,"react-bootstrap/lib/DropdownButton":188,"react-bootstrap/lib/Grid":196,"react-bootstrap/lib/Image":197,"react-bootstrap/lib/Input":198,"react-bootstrap/lib/MenuItem":200,"react-bootstrap/lib/Modal":201,"react-bootstrap/lib/Row":216,"react-dom":228,"react-router":277}],426:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 
@@ -45888,7 +45950,7 @@ var LandingPage = React.createClass({
 */
 module.exports = FullscreenC;
 
-},{"react":412,"react-dom":228}],426:[function(require,module,exports){
+},{"react":412,"react-dom":228}],427:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 var $ = require('jquery');
@@ -46251,7 +46313,7 @@ var LandingPage = React.createClass({
 
 module.exports = LandingPageC;
 
-},{"./../app/authentication":1,"./ForgotModalC":424,"./FullscreenC":425,"./SearchBoxC":429,"./WelcomeModalC":431,"jquery":107,"react":412,"react-bootstrap/lib/Button":181,"react-bootstrap/lib/ButtonGroup":182,"react-bootstrap/lib/ButtonToolbar":184,"react-bootstrap/lib/Col":185,"react-bootstrap/lib/DropdownButton":188,"react-bootstrap/lib/Grid":196,"react-bootstrap/lib/Input":198,"react-bootstrap/lib/MenuItem":200,"react-bootstrap/lib/Row":216,"react-dom":228,"react-router":277}],427:[function(require,module,exports){
+},{"./../app/authentication":1,"./ForgotModalC":425,"./FullscreenC":426,"./SearchBoxC":430,"./WelcomeModalC":432,"jquery":107,"react":412,"react-bootstrap/lib/Button":181,"react-bootstrap/lib/ButtonGroup":182,"react-bootstrap/lib/ButtonToolbar":184,"react-bootstrap/lib/Col":185,"react-bootstrap/lib/DropdownButton":188,"react-bootstrap/lib/Grid":196,"react-bootstrap/lib/Input":198,"react-bootstrap/lib/MenuItem":200,"react-bootstrap/lib/Row":216,"react-dom":228,"react-router":277}],428:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 //var $ = require('jquery');
@@ -46320,7 +46382,7 @@ var NavBarC = React.createClass({
 
 module.exports = NavBarC;
 
-},{"react":412,"react-bootstrap/lib/Nav":207,"react-bootstrap/lib/NavItem":209,"react-bootstrap/lib/Navbar":210,"react-dom":228}],428:[function(require,module,exports){
+},{"react":412,"react-bootstrap/lib/Nav":207,"react-bootstrap/lib/NavItem":209,"react-bootstrap/lib/Navbar":210,"react-dom":228}],429:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 var $ = require('jquery');
@@ -46450,7 +46512,7 @@ var ResetC = React.createClass({
 //{this.state.error ? this.state.errorMessage : 'No error'}
 module.exports = ResetC;
 
-},{"./../app/authentication":1,"jquery":107,"react":412,"react-bootstrap/lib/Button":181,"react-bootstrap/lib/ButtonInput":183,"react-bootstrap/lib/Input":198,"react-dom":228}],429:[function(require,module,exports){
+},{"./../app/authentication":1,"jquery":107,"react":412,"react-bootstrap/lib/Button":181,"react-bootstrap/lib/ButtonInput":183,"react-bootstrap/lib/Input":198,"react-dom":228}],430:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 var Link = require('react-router').Link;
@@ -46505,7 +46567,7 @@ var SearchBoxC = React.createClass({
 
 module.exports = SearchBoxC;
 
-},{"react":412,"react-bootstrap/lib/Col":185,"react-bootstrap/lib/Grid":196,"react-bootstrap/lib/Input":198,"react-bootstrap/lib/Row":216,"react-dom":228,"react-router":277}],430:[function(require,module,exports){
+},{"react":412,"react-bootstrap/lib/Col":185,"react-bootstrap/lib/Grid":196,"react-bootstrap/lib/Input":198,"react-bootstrap/lib/Row":216,"react-dom":228,"react-router":277}],431:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 var $ = require('jquery');
@@ -46601,7 +46663,7 @@ var SignupC = React.createClass({
 //{this.state.error ? this.state.errorMessage : 'No error'}
 module.exports = SignupC;
 
-},{"./../app/authentication":1,"jquery":107,"react":412,"react-bootstrap/lib/Button":181,"react-bootstrap/lib/ButtonInput":183,"react-bootstrap/lib/Input":198,"react-dom":228}],431:[function(require,module,exports){
+},{"./../app/authentication":1,"jquery":107,"react":412,"react-bootstrap/lib/Button":181,"react-bootstrap/lib/ButtonInput":183,"react-bootstrap/lib/Input":198,"react-dom":228}],432:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 var $ = require('jquery');
@@ -46862,4 +46924,4 @@ module.exports = WelcomeModalC;
             </div>
             */
 
-},{"./../app/authentication":1,"./FullscreenC":425,"./SearchBoxC":429,"jquery":107,"react":412,"react-bootstrap/lib/Button":181,"react-bootstrap/lib/ButtonGroup":182,"react-bootstrap/lib/ButtonInput":183,"react-bootstrap/lib/ButtonToolbar":184,"react-bootstrap/lib/Col":185,"react-bootstrap/lib/DropdownButton":188,"react-bootstrap/lib/Grid":196,"react-bootstrap/lib/Image":197,"react-bootstrap/lib/Input":198,"react-bootstrap/lib/MenuItem":200,"react-bootstrap/lib/Modal":201,"react-bootstrap/lib/Row":216,"react-dom":228,"react-router":277}]},{},[418]);
+},{"./../app/authentication":1,"./FullscreenC":426,"./SearchBoxC":430,"jquery":107,"react":412,"react-bootstrap/lib/Button":181,"react-bootstrap/lib/ButtonGroup":182,"react-bootstrap/lib/ButtonInput":183,"react-bootstrap/lib/ButtonToolbar":184,"react-bootstrap/lib/Col":185,"react-bootstrap/lib/DropdownButton":188,"react-bootstrap/lib/Grid":196,"react-bootstrap/lib/Image":197,"react-bootstrap/lib/Input":198,"react-bootstrap/lib/MenuItem":200,"react-bootstrap/lib/Modal":201,"react-bootstrap/lib/Row":216,"react-dom":228,"react-router":277}]},{},[418]);
