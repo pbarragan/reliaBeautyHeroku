@@ -79,6 +79,38 @@ var NotLoggedIn = React.createClass({
   }
 });
 
+var CheckAjaxC = React.createClass({
+  getInitialState: function() {
+    return { info: '' };
+  },
+  componentWillMount: function(){
+  $.ajax({
+        url: '/api/user', 
+        type: 'POST', 
+        contentType:'application/json',
+        data: JSON.stringify({hello:"hello"}),
+        dataType: 'json',
+        headers: {'x-access-token':localstorage.token}
+      })
+      .then(function (data)  {
+          console.log('im in then');
+          console.log(data);
+          this.setState({info:data.message});
+        },
+        function (data)  {
+          console.log('im in then 2');
+          console.log(data);
+        }
+      );
+  }
+  render: function() {
+    return (
+      <h2>Info below</h2>
+      <p>{this.state.info}</p>
+    );
+  }
+});
+
 /*
 var FBCallbackC = React.createClass({
   componentWillMount: function(){
