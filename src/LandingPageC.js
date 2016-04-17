@@ -26,6 +26,19 @@ var LandingPageC = React.createClass({
   contextTypes: {
     router: React.PropTypes.object.isRequired
   },
+  submitSearch: function(e){
+    e.preventDefault();
+    console.log(this.refs.proc.getValue());    
+    console.log(this.refs.city.getValue());
+    var filter = {};
+    filter.city = this.refs.city.getValue();
+
+    if(this.refs.proc.getValue() !== '')
+      filter.procedure = this.refs.proc.getValue();
+
+    //this.context.router.replace('/doctors?'+$.param(filter))
+    this.props.history.push('/doctors?'+$.param(filter));
+  },
   submitLogout: function() {
     console.log('I clicked logout');
     auth.logout(  () => {
@@ -188,11 +201,12 @@ var LandingPageC = React.createClass({
               </div>
             </Col>
           </Row>
+          <form onSubmit={this.submitSearch}>
           <Row>
             <Col xs={7} md={6} lg={6}>
               <ButtonGroup vertical block
                 style={{marginTop:"0.5em",marginLeft:"0.5em"}}>
-                  <Input type="select" style={procBosListStyle} bsSize="large">
+                  <Input type="select" ref="proc" style={procBosListStyle} bsSize="large">
                     <option value="" disabled selected>Search by procedure</option>
                     {procedureListItems}                         
                   </Input>
@@ -203,7 +217,7 @@ var LandingPageC = React.createClass({
             <Col xs={4} md={3} lg={3}>
               <ButtonGroup vertical block
                 style={{marginTop:"0.5em",marginLeft:"0.5em"}}>
-                  <Input type="select" style={procBosListStyle} bsSize="large">
+                  <Input type="select" ref="city" style={procBosListStyle} bsSize="large">
                     {cityListItems}                        
                   </Input>
               </ButtonGroup>
@@ -211,12 +225,13 @@ var LandingPageC = React.createClass({
             <Col xs={3} md={3} lg={3}>
               <ButtonGroup vertical block
                 style={{marginTop:"0.5em",marginLeft:"0.5em"}}>
-                  <Button bsSize="large" style={searchButtonStyle}>
+                  <Button bsSize="large" type="submit" style={searchButtonStyle}>
                     Search
                   </Button>
               </ButtonGroup>
             </Col>
           </Row>
+          </form>
           <Row>
             <Col xs={6} md={6} lg={6}>
               <div style={{marginTop:"0.5em",marginLeft:"0.5em"}}>

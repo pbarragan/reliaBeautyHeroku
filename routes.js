@@ -5,6 +5,7 @@ var nodemailer = require('nodemailer');
 var crypto = require('crypto');
 
 var User       = require('./models/user');
+var Doctor       = require('./models/doctor');
 
 module.exports = function(app, passport) {
 
@@ -466,15 +467,6 @@ app.put('/api/bugs/:id', function(req, res) {
     });
     */
 
-    // get user info route
-    app.get('/api/user', verifyToken, function(req,res) {
-        console.log(req.decoded);
-        console.log(req.decoded._doc);
-        res.status(200).send({ 
-        success: true, 
-        message: 'Token worked, I think.' 
-    });
-    });
 
 //----------------------------------------------------------------//
 //----------------------------------------------------------------//
@@ -621,7 +613,138 @@ app.put('/api/bugs/:id', function(req, res) {
                 }
           });
     });
-    
+
+
+//////////////// DATA SUBMISSION AND RETREIVAL ////////////////////////
+//////////////// DATA SUBMISSION AND RETREIVAL ////////////////////////
+//////////////// DATA SUBMISSION AND RETREIVAL ////////////////////////
+//////////////// DATA SUBMISSION AND RETREIVAL ////////////////////////
+//////////////// DATA SUBMISSION AND RETREIVAL ////////////////////////
+//////////////// DATA SUBMISSION AND RETREIVAL ////////////////////////
+//////////////// DATA SUBMISSION AND RETREIVAL ////////////////////////
+//////////////// DATA SUBMISSION AND RETREIVAL ////////////////////////
+
+    // get user info route
+    app.get('/api/user', verifyToken, function(req,res) {
+        console.log(req.decoded);
+        console.log(req.decoded._doc);
+        res.status(200).send({ 
+        success: true, 
+        message: 'Token worked, I think.' 
+        });
+    });
+
+    // get doctors route
+    app.get('/api/doctors', verifyToken, function(req,res) {
+        console.log(req.decoded);
+        console.log(req.decoded._doc);
+        Doctor.find({},function(err, doctors){
+            if(err) return res.status(403).send({ 
+                success: false   
+            });
+            else return res.status(200).send({
+                success: true,
+                doctors: doctors
+            });
+        });
+
+    });
+
+    // get doctors route with filter
+    app.get('/api/doctors/filter', function(req,res) {
+        console.log("Query string", req.query);
+        var filter = {};
+        if (req.query.city)
+            filter.city = req.query.city;
+        // search array of procedures as follows
+        if (req.query.procedure)
+            filter.procedures = req.query.procedure;
+
+        Doctor.find(filter,function(err, doctors){
+            if(err) return res.status(403).send({ 
+                success: false   
+            });
+            else return res.status(200).send({
+                success: true,
+                doctors: doctors
+            });
+        });
+
+    });
+
+    // get user info route
+    app.get('/api/admin', verifyToken, function(req,res) {
+        console.log(req.decoded);
+        console.log(req.decoded._doc);
+        console.log(req.decoded._doc.local.email);
+        if(req.decoded._doc.local.email === 'super@admin'){
+            return res.status(200).send({ 
+                success: true, 
+                message: 'You are an admin!'
+            });
+        }
+        else return res.status(403).send({ 
+                success: false, 
+                message: 'Not an admin'
+            });
+    });
+
+    app.post('/submit/doctor', verifyToken, function(req, res, next) {
+        //console.log(req);
+        //console.log(req.body);
+        console.log('!!!!!!!!');
+        console.log(req.body.data);
+        console.log(req.body.data.procedures.length);
+        //res.json({success:false});
+
+
+        Doctor.findOne({ name :  req.body.data.name }, 
+            function(err, doctor) {
+            // if there are any errors, return the error
+            if (err)
+                return res.status(403).send({ 
+                    success: false, 
+                    message: err
+                });
+
+            // check to see if theres already a user with that email
+            if (doctor) {
+                return res.status(403).send({ 
+                    success: false, 
+                    message: 'That doctor already exists.'
+                });
+            } else {
+
+                // create the user
+                var newDoctor            = new Doctor();
+
+                newDoctor.name          = req.body.data.name;
+                newDoctor.numandstreet  = req.body.data.numandstreet;
+                newDoctor.city          = req.body.data.city;
+                newDoctor.state         = req.body.data.state.toUpperCase();
+                newDoctor.zip           = req.body.data.zip;
+                newDoctor.phone         = req.body.data.phone;
+                newDoctor.url           = req.body.data.url;
+                newDoctor.procedures    = req.body.data.procedures;
+                newDoctor.prices        = req.body.data.prices;
+
+
+                newDoctor.save(function(err) {
+                    if (err)
+                        return res.status(403).send({ 
+                                    success: false, 
+                                    message: err
+                                });
+
+                    return res.status(200).send({ 
+                                success: true, 
+                                message: 'Doctor save worked'
+                            });
+                });
+            }
+        });
+    });
+
 
 // route middleware to ensure user is logged in
 function isLoggedIn(req, res, next) {

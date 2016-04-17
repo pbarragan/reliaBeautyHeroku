@@ -16,6 +16,9 @@ var AuthContainerC = require('./AuthContainerC');
 var SignupC = require('./SignupC');
 var ResetC = require('./ResetC');
 var FBCallbackC = require('./FBCallbackC');
+var DoctorInputC = require('./DoctorInputC');
+var DoctorListC = require('./DoctorListC');
+var DoctorsC = require('./DoctorsC');
 
 var $ = require('jquery');
 
@@ -85,28 +88,35 @@ var CheckAjaxC = React.createClass({
   },
   componentWillMount: function(){
   $.ajax({
+        context: this,
         url: '/api/user', 
-        type: 'POST', 
+        type: 'GET', 
         contentType:'application/json',
         data: JSON.stringify({hello:"hello"}),
         dataType: 'json',
-        headers: {'x-access-token':localstorage.token}
+        headers: {'x-access-token':localStorage.token}
       })
       .then(function (data)  {
           console.log('im in then');
           console.log(data);
+          console.log(data.message);
           this.setState({info:data.message});
         },
         function (data)  {
           console.log('im in then 2');
           console.log(data);
+          console.log(data.responseJSON.message);
+          this.setState({info:data.responseJSON.message});
         }
       );
-  }
+  },
   render: function() {
+    console.log(this.state.info);
     return (
+      <div>
       <h2>Info below</h2>
       <p>{this.state.info}</p>
+      </div>
     );
   }
 });
@@ -166,7 +176,47 @@ function requireAuth(nextState, replace) {
       pathname: '/notloggedin',
       state: { nextPathname: nextState.location.pathname }
     })
+    console.log('does this also happen');
   }
+}
+
+function requireAdmin(nextState, replace,callback) {
+    console.log(replace);
+
+    $.ajax({
+        context: this,
+        url: '/api/admin', 
+        type: 'GET', 
+        contentType:'application/json',
+        data: JSON.stringify({hello:"hello"}),
+        dataType: 'json',
+        headers: {'x-access-token':localStorage.token}
+      })
+      .then(function (data)  {
+          console.log('im in then');
+          console.log(data);
+          console.log(data.message);
+          callback(); 
+
+        },
+        function (data)  {
+          console.log('im in then 2');
+          console.log(data);
+          console.log(data.responseJSON.message);
+          console.log(replace);
+          cback(nextState,replace);
+          console.log('what is going on');
+          callback(); 
+        }
+      );
+}
+
+function cback(nextState,replace){
+  console.log('please');
+    replace({
+      pathname: '/index',
+      state: { nextPathname: nextState.location.pathname }
+    })
 }
 
 function requireLoggedOut(nextState, replace) {
@@ -202,7 +252,10 @@ ReactDOM.render(
         <Route path="/reset/:token" component={ResetC} />
         <Route path="/resetmissing" component={ResetMissingC} />
         <Route path="/facebookcallback" component={FBCallbackC} />
-
+        <Route path="/checkajax" component={CheckAjaxC} />
+        <Route path="/doctorinput" component={DoctorInputC} onEnter={requireAdmin}/>
+        <Route path="/doctorlist" component={DoctorListC} onEnter={requireAdmin}/>
+        <Route path="/doctors" component={DoctorsC} />
         <Route path="*" component={NoMatch} />
       </Route>
 
