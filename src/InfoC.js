@@ -3,6 +3,7 @@ var ReactDOM = require('react-dom');
 var $ = require('jquery');
 var Link = require('react-router').Link;
 var auth = require('./../app/authentication');
+var aux = require('./../app/aux');
 
 //var Panel = require('react-bootstrap/lib/Panel');
 var Input = require('react-bootstrap/lib/Input');
@@ -16,13 +17,21 @@ var MenuItem = require('react-bootstrap/lib/MenuItem');
 var Grid = require('react-bootstrap/lib/Grid');
 var Row = require('react-bootstrap/lib/Row');
 var Col = require('react-bootstrap/lib/Col');
+var Tabs = require('react-bootstrap/lib/Tabs');
+var Tab = require('react-bootstrap/lib/Tab');
+var Modal = require('react-bootstrap/lib/Modal');
+var Glyphicon = require('react-bootstrap/lib/Glyphicon');
 
 var FullscreenC = require('./FullscreenC');
 var SearchBoxC = require('./SearchBoxC'); // I don't think this is used
 var WelcomeModalC = require('./WelcomeModalC');
 var ForgotModalC = require('./ForgotModalC');
+var DoctorsC = require('./DoctorsC');
+var ResultsC = require('./ResultsC');
+var DoctorProfileC = require('./DoctorProfileC');
+var QuoteC = require('./QuoteC');
 
-var LandingPageC = React.createClass({
+var InfoC = React.createClass({
   contextTypes: {
     router: React.PropTypes.object.isRequired
   },
@@ -37,7 +46,7 @@ var LandingPageC = React.createClass({
       filter.procedure = this.refs.proc.getValue();
 
     //this.context.router.replace('/doctors?'+$.param(filter))
-    this.props.history.push('/info?'+$.param(filter));
+    this.props.history.push('/doctors?'+$.param(filter));
   },
   submitLogout: function() {
     console.log('I clicked logout');
@@ -55,10 +64,93 @@ var LandingPageC = React.createClass({
   },
 
   getInitialState: function() {
+    var query = this.props.location.query || {};
+    var state = { tabKey: 0, 
+                  showWelcomeModal: false, 
+                  showForgotModal: false,
+                  loggedIn: auth.loggedIn(),
+                  error: false,
+                  errorMessage: '',
+                  doctors: [],
+                  city: '',
+                  procedure: '',
+                  showDoctorList: true,
+                  showDoctorProfile: true,
+                  doctor: {}
+                  };
+    if (query.city)
+      state.city = query.city;
+    if (query.procedure)
+      state.procedure = query.procedure;
+
     console.log('LandingPage: get initial state loggedIn is: ', auth.loggedIn());
-    return { disabled: true,
-      showWelcomeModal: false, showForgotModal: false,
-      loggedIn: auth.loggedIn() };
+    return state;
+  },
+
+  handleDoctorClick: function(doctor,e){
+    e.preventDefault();
+    console.log('We clicked a doctor');
+    this.setState({showDoctorList:false,doctor:doctor})
+  },
+  handleBackClick: function(e){
+    e.preventDefault();
+    console.log('We went back');
+    this.setState({showDoctorList:true,doctor:{}})
+  },
+  handleQuoteClick: function(e){
+    e.preventDefault();
+    console.log('We clicked quote');
+    this.setState({showDoctorProfile:false})
+  },
+  handleBackQuoteClick: function(e){
+    e.preventDefault();
+    console.log('We went back from quote');
+    this.setState({showDoctorProfile:true})
+  },
+
+  loadData: function(){
+    var query = this.props.location.query || {};
+    var filter = {};
+    if (query.city)
+      filter.city = query.city;
+    if (query.procedure)
+      filter.procedure = query.procedure;
+
+    aux.retrieveDoctorsQuery(filter,(worked,data)=>{
+      if(worked){
+        console.log(data);
+        var state = {doctors:data.doctors};
+        if (query.city)
+          state.city = query.city;
+        if (query.procedure)
+          state.procedure = query.procedure;
+        this.setState(state);
+      }
+      else{
+        this.setState({error:true,
+          errorMessage:'Error: please try search again.'});
+      }
+    });
+  },
+
+  componentDidMount: function(){
+    this.loadData();
+  },
+
+  componentDidUpdate: function(prevProps){
+  var oldQuery = prevProps.location.query;
+  var newQuery = this.props.location.query;
+  console.log(prevProps);
+  console.log(oldQuery);
+  console.log(newQuery)
+  if (oldQuery.city === newQuery.city &&
+    oldQuery.procedure === newQuery.procedure) {
+    console.log("DoctorsC: componentDidUpdate, no change in filter, not updating");
+    return;
+  } else {
+    console.log("DoctorsC: componentDidUpdate, loading data with new filter");
+    this.loadData();
+  }
   },
 
   closeWelcome: function() {
@@ -75,11 +167,9 @@ var LandingPageC = React.createClass({
   openForgot: function() {
     this.setState({ showWelcomeModal: false, showForgotModal: true });
   },
-
-  handleProcSelect: function(e) {
-    if(e.target.value !== '') this.setState({disabled: false});
+  handleTabSelect: function(key) {
+    this.setState({tabKey: key});
   },
-
   render: function() {
     console.log('LandingPage: Rendering');
     console.log('When the landing page rendered, loggedIn is:',this.state.loggedIn);
@@ -115,7 +205,6 @@ var LandingPageC = React.createClass({
     });
 
     // Styles
-    // <div style={nameStyle}>ReliaBeauty</div>
     var nameStyle = {
       // Font properties
       fontSize: 175*sizeScale+"em",
@@ -142,14 +231,15 @@ var LandingPageC = React.createClass({
     };
     var procBosListStyle = {
       // Font properties
-      fontSize: 60*sizeScale+"em",
-      height: 0.5*60*sizeScale+"em",
+      fontSize: 35*sizeScale+"em",
+      //height: 0.5*100*sizeScale+"em",
       fontFamily: "Roboto",
       fontWeight: "100",
       color: "#b5b5b5",
       textAlign: "left",
       paddingTop: "0px",
       paddingBottom: "0px",
+      fontStyle: "italic",
       borderRadius: 40*radiusScale+"em"
     };
     var searchButtonStyle = {
@@ -180,109 +270,78 @@ var LandingPageC = React.createClass({
       verticalAlign: "baseline",
       textDecoration: "underline"
     };
+    var topBarStyle = {
+      /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#ffffff+0,d7dbe4+1,d6dae5+100 */
+      background: "#ffffff", /* Old browsers */
+      background: "-moz-linear-gradient(top,  #d7dbe4 0%, #d6dae5 100%)", /* FF3.6-15 */
+      background: "-webkit-linear-gradient(top,  #d7dbe4 0%,#d6dae5 100%)", /* Chrome10-25,Safari5.1-6 */
+      background: "linear-gradient(to bottom,  #d7dbe4 0%,#d6dae5 100%)", /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+      filter: "progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#d6dae5',GradientType=0 )", /* IE6-9 */
+    };
     var snapStyle = {
       color: "#0971BA",
       fontStyle: "italic",
-      fontSize: 220*sizeScale+"em",
+      fontSize: 110*sizeScale+"em",
       fontFamily: "Perpetua, serif"
     };
     var bellaStyle = {
       color: "#17547C",
-      fontSize: 160*sizeScale+"em",
+      fontSize: 80*sizeScale+"em",
       fontWeight: "bold"
     };
-    var disabled = this.state.disabled ? true:false;
-    //The most trusted name is cosmetic medicine.
+    var searchDivStyle = {
+      position: "absolute",
+      left: 0.5+"em",
+      top: 7+"em"
+      //width: 22+"em"
+    };
+    var snapBellaDivStyle = {
+      left: 0.75+"em",
+      top: 1+"em",
+      bottom: 1+"em"
+    };
+    var innerButton = <Button style={{backgroundColor:"#0971BA"}}><Glyphicon glyph="search" /></Button>;
     return (
-      <FullscreenC backgroundImage={backgroundImage}>
-        <Grid>
-          <Row>
-            <Col>
-            <div style={{marginTop:"2em"}}>
-              <span style={snapStyle}>snap</span>
-              <span style={bellaStyle}>BELLA.</span>
-            </div>
-            </Col>
-          </Row>
-          <Row>
-            <Col>
-              <div style={{marginTop:"0em"}}>
-                <div style={tagLineStyle}>
-                  
-                </div>
-              </div>
-            </Col>
-          </Row>
-          <Row>
-            <Col xs={8} md={7} lg={7}>
-              <div style={{marginTop:"3em",marginLeft:"0.5em"}}>
-                <div style={searchLineStyle}>
-                  Discover life-changing results from top-quality providers.
-                </div>
-              </div>
-            </Col>
-          </Row>
-          <form onSubmit={this.submitSearch}>
-          <Row>
-            <Col xs={7} md={6} lg={6}>
-              <ButtonGroup vertical block
-                style={{marginTop:"0.5em",marginLeft:"0.5em"}}>
-                  <Input type="select" ref="proc" style={procBosListStyle} 
-                  bsSize="large" onChange={this.handleProcSelect}>
-                    <option value="" disabled selected >
-                      Search by procedure
-                    </option>
-                    {procedureListItems}                         
-                  </Input>
-              </ButtonGroup>
-            </Col>
-          </Row>
-          <Row>
-            <Col xs={4} md={3} lg={3}>
-              <ButtonGroup vertical block
-                style={{marginTop:"0.5em",marginLeft:"0.5em"}}>
-                  <Input type="select" ref="city" style={procBosListStyle} bsSize="large">
-                    {cityListItems}                        
-                  </Input>
-              </ButtonGroup>
-            </Col>
-            <Col xs={3} md={3} lg={3}>
-              <ButtonGroup vertical block
-                style={{marginTop:"0.5em",marginLeft:"0.5em"}}>
-                  <Button bsSize="large" type="submit" 
-                  style={searchButtonStyle} disabled={disabled}>
-                    Search
-                  </Button>
-              </ButtonGroup>
-            </Col>
-          </Row>
-          </form>
-          <Row>
-            <Col xs={6} md={6} lg={6}>
-              <div style={{marginTop:"0.5em",marginLeft:"0.5em"}}>
-                <span style={memberLineStyle}>
-                  Already a member?
-                </span>                
-                <span>
-                {this.state.loggedIn ?
-                  <Button style={signInLineStyle}
-                  bsStyle="link" onClick={this.submitLogout}>Logout</Button>:
-                  <Button style={signInLineStyle}
-                  bsStyle="link" onClick={this.openWelcome}>Sign in</Button>}
-                </span>
-              </div>
-            </Col>
-          </Row>
-        </Grid>
-
-        <WelcomeModalC showWelcomeModal={this.state.showWelcomeModal} 
-          closeWelcome={this.closeWelcome} openForgot={this.openForgot}/>
-
-        <ForgotModalC showForgotModal={this.state.showForgotModal} 
-          closeForgot={this.closeForgot}/>
-        <div style={{position:"absolute",top:0,right:0}}>
-          {this.state.loggedIn ? "Logged In":"Not Logged In"}
+      <FullscreenC backgroundColor="#d7dbe4">
+        <div style={{marginLeft:"1em",marginTop:"0.5em",marginBottom:"0.25em"}}>
+        <div style={snapBellaDivStyle}>
+          <span style={snapStyle}>snap</span>
+          <span style={bellaStyle}>BELLA.</span>
         </div>
+        <Col xs={3} sm={3} md={4} lg={4} style={searchDivStyle}>
+          <Input type="select" ref="proc" style={procBosListStyle} 
+            bsSize="large" buttonAfter={innerButton}>
+            <option value="" disabled selected>Search by procedure</option>
+            {procedureListItems}                         
+          </Input>
+        </Col>
+        </div>
+        <Tabs tabWidth={12} activeKey={this.state.tabKey} onSelect={this.handleTabSelect}>
+        <Tab eventKey={0} title="Doctors in your area" tabClassName="tab-name-style">
+          <div style={{backgroundColor:"white"}}>
+            {this.state.showDoctorList ?
+              (<ResultsC doctors={this.state.doctors}
+              procedure={this.state.procedure} city={this.state.city}
+              handleDoctorClick={this.handleDoctorClick}/>)
+              : 
+              this.state.showDoctorProfile ?
+              (<DoctorProfileC procedure={this.state.procedure} 
+                city={this.state.city} doctor={this.state.doctor}
+                handleBackClick={this.handleBackClick}
+                handleQuoteClick={this.handleQuoteClick}/>)
+              :
+              (<QuoteC procedure={this.state.procedure} 
+                city={this.state.city} doctor={this.state.doctor}
+                handleBackQuoteClick={this.handleBackQuoteClick}/>)
+            }
+          </div>
+        </Tab>
+        <Tab eventKey={1} title="My profile" tabClassName="tab-name-style">
+          <div style={{backgroundColor:"white"}}>
+            Tab 2 content
+          </div>
+        </Tab>
+      </Tabs>
       </FullscreenC>
       );
 
@@ -323,4 +382,4 @@ var LandingPage = React.createClass({
                   </DropdownButton>
 */
 
-module.exports = LandingPageC;
+module.exports = InfoC;

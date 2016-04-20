@@ -23,6 +23,48 @@ var FullscreenC = React.createClass({
       backgroundImage: this.state.backgroundImage
     };
     */
+    var fullscreenStyle = {};
+    if(this.props.backgroundImage){
+    fullscreenStyle = {
+      backgroundColor: 'black',
+      position: 'fixed',  
+      padding:0,
+      margin:0,
+      top:0,
+      left:0,
+      backgroundSize: 'cover',
+      width: "100%",
+      height: "100%",
+      backgroundImage: 'url('+this.props.backgroundImage+')'
+    };
+    }
+    else if(this.props.backgroundColor){
+    fullscreenStyle = {
+      backgroundColor: this.props.backgroundColor,
+      position: 'fixed',  
+      padding:0,
+      margin:0,
+      top:0,
+      left:0,
+      backgroundSize: 'cover',
+      width: "100%",
+      height: "100%"
+    };
+    }
+    else{
+    fullscreenStyle = {
+      backgroundColor: 'black',
+      position: 'fixed',  
+      padding:0,
+      margin:0,
+      top:0,
+      left:0,
+      backgroundSize: 'cover',
+      width: "100%",
+      height: "100%"
+    };
+    }
+    /*
     var bgDefaultImg;
     if(this.props.backgroundImage) bgDefaultImg = this.props.backgroundImage;
     else bgDefaultImg = './img/background.jpg';
@@ -38,7 +80,7 @@ var FullscreenC = React.createClass({
       height: "100%",
       backgroundImage: 'url('+bgDefaultImg+')'
     };
-    
+*/
     //console.log('FullscreenC: About to map')
 
     /*
