@@ -19,6 +19,7 @@ var FBCallbackC = require('./FBCallbackC');
 var DoctorInputC = require('./DoctorInputC');
 var DoctorListC = require('./DoctorListC');
 var DoctorsC = require('./DoctorsC');
+var InfoC = require('./InfoC');
 
 var $ = require('jquery');
 
@@ -256,6 +257,7 @@ ReactDOM.render(
         <Route path="/doctorinput" component={DoctorInputC} onEnter={requireAdmin}/>
         <Route path="/doctorlist" component={DoctorListC} onEnter={requireAdmin}/>
         <Route path="/doctors" component={DoctorsC} />
+        <Route path="/info" component={InfoC} />
         <Route path="*" component={NoMatch} />
       </Route>
 

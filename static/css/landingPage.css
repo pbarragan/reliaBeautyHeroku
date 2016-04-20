@@ -29,3 +29,20 @@
     float: none;
     margin: 0 auto;
 }
+
+.nav-tabs > li, .nav-pills > li {
+    float:none;
+    display:inline-block;
+    *display:inline; /* ie7 fix */
+     zoom:1; /* hasLayout ie7 trigger */
+}
+
+.nav-tabs, .nav-pills {
+    text-align:center;
+}
+
+.tab-name-style {
+	font-size: 1.5em;
+	font-family: Roboto;
+    font-weight: 300;
+}
