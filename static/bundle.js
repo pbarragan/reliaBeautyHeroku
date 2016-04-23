@@ -291,6 +291,77 @@ module.exports = {
       return entityMap[s];
     });
   },
+
+  arrayMax(numArray) {
+    return Math.max.apply(null, numArray);
+  },
+  arrayMin(numArray) {
+    return Math.min.apply(null, numArray);
+  },
+
+  //------------- Don't use these
+  sortBy(field, reverse, primer) {
+    console.log('whats the deal');
+    var key = primer ? function (x) {
+      return primer().apply(null, [x[field], x].concat(Array.prototype.slice.call(arguments, 3)));
+    } : function (x) {
+      return x[field];
+    };
+
+    reverse = !reverse ? 1 : -1;
+
+    return function (a, b) {
+      a = key(a);
+      b = key(b);
+      return reverse * ((a > b) - (b > a));
+    };
+  },
+  sortObjects(docs, field, reverse, primer) {
+    console.log('im here');
+    return docs.sort(this.sortBy().apply(null, Array.prototype.slice.call(arguments, 1)));
+  },
+  //------------- END Don't use these
+
+  sortTwoAscending(A, B) {
+    // assuming a and b are the same length
+    // assume a is what to sort on
+    var ASorted = A.map(function (e, i) {
+      return i;
+    }).sort(function (a, b) {
+      return A[a] - A[b];
+    }).map(function (e) {
+      return A[e];
+    });
+    var BSorted = A.map(function (e, i) {
+      return i;
+    }).sort(function (a, b) {
+      return A[a] - A[b];
+    }).map(function (e) {
+      return B[e];
+    });
+    return [ASorted, BSorted];
+  },
+  sortTwoDescending(A, B) {
+    // assuming a and b are the same length
+    // assume a is what to sort on
+    var ASorted = A.map(function (e, i) {
+      return i;
+    }).sort(function (a, b) {
+      return A[b] - A[a];
+    }).map(function (e) {
+      return A[e];
+    });
+    var BSorted = A.map(function (e, i) {
+      return i;
+    }).sort(function (a, b) {
+      return A[b] - A[a];
+    }).map(function (e) {
+      return B[e];
+    });
+    return [ASorted, BSorted];
+  },
+
+  // AJAX Calls
   submitDoctor(data, cb) {
     console.log('im in the submit doctor function');
     var request = { data: data };
@@ -302,6 +373,58 @@ module.exports = {
     $.ajax({
       context: this,
       url: '/submit/doctor',
+      type: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify(request),
+      dataType: 'json',
+      headers: { 'x-access-token': localStorage.token }
+    }).then(function (data) {
+      console.log(data);
+      console.log(data.message);
+      if (cb) cb(true, '');
+    }, function (data) {
+      console.log(data);
+      console.log(data.responseJSON.message);
+      if (cb) cb(false, data.responseJSON.message);
+    });
+  },
+  updateDoctor(data, cb) {
+    console.log('im in the update doctor function');
+    var request = { data: data };
+    cb = arguments[arguments.length - 1];
+
+    console.log('i got to the ajax call');
+    console.log(request);
+
+    $.ajax({
+      context: this,
+      url: '/update/doctor',
+      type: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify(request),
+      dataType: 'json',
+      headers: { 'x-access-token': localStorage.token }
+    }).then(function (data) {
+      console.log(data);
+      console.log(data.message);
+      if (cb) cb(true, '');
+    }, function (data) {
+      console.log(data);
+      console.log(data.responseJSON.message);
+      if (cb) cb(false, data.responseJSON.message);
+    });
+  },
+  deleteDoctor(data, cb) {
+    console.log('im in the delete doctor function');
+    var request = { data: data };
+    cb = arguments[arguments.length - 1];
+
+    console.log('i got to the ajax call');
+    console.log(request);
+
+    $.ajax({
+      context: this,
+      url: '/delete/doctor',
       type: 'POST',
       contentType: 'application/json',
       data: JSON.stringify(request),
@@ -45660,6 +45783,8 @@ var DoctorInputC = require('./DoctorInputC');
 var DoctorListC = require('./DoctorListC');
 var DoctorsC = require('./DoctorsC');
 var InfoC = require('./InfoC');
+var InputPriceDebounceC = require('./InputPriceDebounceC');
+var FilterPriceC = require('./FilterPriceC');
 
 var $ = require('jquery');
 
@@ -45787,6 +45912,56 @@ var CheckAjaxC = React.createClass({
         this.state.info
       )
     );
+  }
+});
+
+var Main = React.createClass({
+  displayName: 'Main',
+
+  getDefaultProps: function () {
+    return {
+      initialValue: '',
+      onChange: null
+    };
+  },
+  getInitialState: function () {
+    return {
+      value: this.props.initialValue
+    };
+  },
+  _searchOnServer: _.debounce(function (value) {
+    console.log('fire action creator');
+  }, 800),
+  handleChange: function (e) {
+    console.log(e);
+    console.log(e.target.value);
+    this.setState({ value: e.target.value });
+    this._searchOnServer(e.target.value);
+  },
+  render: function () {
+    var state = this.state;
+    return React.createElement('input', { placeholder: 'type and see console', type: 'text', value: state.value, onChange: this.handleChange });
+  }
+});
+
+var InputDebounceTest = React.createClass({
+  displayName: 'InputDebounceTest',
+
+  getInitialState: function () {
+    console.log('getting the initial state');
+    return {
+      value: ''
+    };
+  },
+  handleChange: function (value, success) {
+    console.log("input test says:");
+    console.log(value, success);
+  },
+  render: function () {
+    console.log('Rendering InputDebounceTest');
+    var state = this.state;
+    var price = 100;
+    return React.createElement(InputPriceDebounceC, { initialValue: price, onChange: this.handleChange });
   }
 });
 
@@ -45924,11 +46099,12 @@ ReactDOM.render(React.createElement(
     React.createElement(Route, { path: '/doctorlist', component: DoctorListC, onEnter: requireAdmin }),
     React.createElement(Route, { path: '/doctors', component: DoctorsC }),
     React.createElement(Route, { path: '/info', component: InfoC }),
+    React.createElement(Route, { path: '/main', component: FilterPriceC }),
     React.createElement(Route, { path: '*', component: NoMatch })
   )
 ), document.getElementById('main'));
 
-},{"./../app/authentication":1,"./AuthContainerC":423,"./BugEdit":425,"./BugList":427,"./DoctorInputC":428,"./DoctorListC":429,"./DoctorsC":433,"./FBCallbackC":434,"./InfoC":437,"./LandingPageC":438,"./ResetC":441,"./SignupC":444,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-dom":232,"react-router":281}],423:[function(require,module,exports){
+},{"./../app/authentication":1,"./AuthContainerC":423,"./BugEdit":425,"./BugList":427,"./DoctorInputC":428,"./DoctorListC":429,"./DoctorsC":433,"./FBCallbackC":434,"./FilterPriceC":435,"./InfoC":438,"./InputPriceDebounceC":439,"./LandingPageC":440,"./ResetC":443,"./SignupC":446,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-dom":232,"react-router":281}],423:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 var auth = require('./../app/authentication');
@@ -46170,7 +46346,7 @@ var BugEdit = React.createClass({
 
 module.exports = BugEdit;
 
-},{"./NavBarC":439,"jquery":108,"react":416,"react-bootstrap/lib/Alert":181,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/ButtonToolbar":185,"react-bootstrap/lib/Input":199,"react-bootstrap/lib/Panel":216,"react-dom":232,"react-router":281}],426:[function(require,module,exports){
+},{"./NavBarC":441,"jquery":108,"react":416,"react-bootstrap/lib/Alert":181,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/ButtonToolbar":185,"react-bootstrap/lib/Input":199,"react-bootstrap/lib/Panel":216,"react-dom":232,"react-router":281}],426:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 
@@ -46486,7 +46662,7 @@ var BugList = React.createClass({
 
 module.exports = BugList;
 
-},{"./BugAdd":424,"./BugFilter":426,"./NavBarC":439,"jquery":108,"react":416,"react-bootstrap/lib/Panel":216,"react-bootstrap/lib/Table":220,"react-dom":232,"react-router":281}],428:[function(require,module,exports){
+},{"./BugAdd":424,"./BugFilter":426,"./NavBarC":441,"jquery":108,"react":416,"react-bootstrap/lib/Panel":216,"react-bootstrap/lib/Table":220,"react-dom":232,"react-router":281}],428:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 var $ = require('jquery');
@@ -46505,19 +46681,43 @@ var DoctorInputC = React.createClass({
     router: React.PropTypes.object.isRequired
   },
   procedureList: ["Liposuction", "Eye lift", "Rhinoplasty", "Facelift", "Brow Lift", "Chin Augmentation", "Injectables", "Tummy Tuck", "Breast augmentation", "Breast Lift", "Breast Reduction", "Breast Reconstruction", "Brazilian butt lift", "Mommy Makeover", "Arm Lift", "Body Lift"],
+  submitList: function () {
+    this.props.history.push('/doctorlist');
+  },
+  componentDidMount: function () {
+    console.log("Default value: " + this.refs.name.getValue());
+    console.log(this.props.defaultName);
+  },
   getInitialState: function () {
     console.log(this.procedureList);
-    console.log(aux);
-    console.log(aux.escapeHTML);
+    //console.log(aux);
+    //console.log(aux.escapeHTML)
+    console.log(this.props);
+    console.log(this.props.location.query.procedures);
+    console.log(this.props.location.query['procedures[]']);
 
     var procs = [];
-    for (var i = 0; i < this.procedureList.length; i++) procs.push({ id: this.procedureList[i], selected: false, price: '0' });
+    for (var i = 0; i < this.procedureList.length; i++) {
+      var isSelected = false;
+      var procPrice = '0';
+      if (this.props.location.query['procedures[]'] && this.props.location.query['prices[]']) {
+        var procInd = this.props.location.query['procedures[]'].indexOf(this.procedureList[i]);
+        if (procInd !== -1) {
+          isSelected = true;
+          procPrice = '' + this.props.location.query['prices[]'][procInd];
+        }
+      }
+      procs.push({ id: this.procedureList[i], selected: isSelected, price: procPrice });
+    }
 
+    var doUpdate = this.props.location.query.doUpdate ? true : false;
+    console.log('I passed doUpdate? :' + doUpdate);
     return {
       error: false,
       errorMessage: '',
       success: false,
       successMessage: '',
+      doUpdate: doUpdate,
 
       name: '',
       numandstreet: '',
@@ -46536,6 +46736,10 @@ var DoctorInputC = React.createClass({
     console.log(e.target.label);
 
     console.log(e.target.checked);
+  },
+  changeUpdate: function (e) {
+    console.log(e.target.checked);
+    this.setState({ doUpdate: e.target.checked });
   },
   changeSelection: function (id) {
     var procs = this.state.procedures.map(function (d) {
@@ -46572,7 +46776,7 @@ var DoctorInputC = React.createClass({
   validateAndPrepState: function (state) {
     var procArr = [],
         priceArr = [];
-    var regexPrice = /^[+-]?\d+(\.\d+)?$/;
+    var regexPrice = /^\d+(\.\d*)?$/;
     var regexZip = /^[0-9]{5}$/;
     var regexPhone = /^[0-9]{10}$/;
     var regexURL = /[-a-zA-Z0-9@:%_\+.~#?&\/\/=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)?/i;
@@ -46607,6 +46811,9 @@ var DoctorInputC = React.createClass({
         zip: escapedZip,
         phone: escapedPhone,
         url: encodeURIComponent(this.refs.url.getValue()),
+        education: aux.escapeHTML(this.refs.education.getValue()),
+        hospaff: aux.escapeHTML(this.refs.hospaff.getValue()),
+        specialties: aux.escapeHTML(this.refs.specialties.getValue()),
         procedures: procArr,
         prices: priceArr
       } };
@@ -46620,16 +46827,32 @@ var DoctorInputC = React.createClass({
 
       console.log('data ready');
       console.log(result.obj);
-      aux.submitDoctor(result.obj, (worked, message) => {
-        if (worked) {
-          console.log("doctor submit worked");
-          this.setState({ success: true, successMessage: "Doctor submit worked" });
-        } else {
-          console.log("doctor signup did not work");
-          this.setState({ error: true,
-            errorMessage: "Doctor submit did not work: " + message });
-        }
-      });
+
+      if (this.state.doUpdate) {
+        if (this.props.location.query._id) result.obj._id = this.props.location.query._id;
+
+        aux.updateDoctor(result.obj, (worked, message) => {
+          if (worked) {
+            console.log("doctor update worked");
+            this.setState({ success: true, successMessage: "Doctor update worked" });
+          } else {
+            console.log("doctor update did not work");
+            this.setState({ error: true,
+              errorMessage: "Doctor update did not work: " + message });
+          }
+        });
+      } else {
+        aux.submitDoctor(result.obj, (worked, message) => {
+          if (worked) {
+            console.log("doctor submit worked");
+            this.setState({ success: true, successMessage: "Doctor submit worked" });
+          } else {
+            console.log("doctor submit did not work");
+            this.setState({ error: true,
+              errorMessage: "Doctor submit did not work: " + message });
+          }
+        });
+      }
     } else this.setState({ error: true,
       errorMessage: "This entry is invalid:" + result.obj });
   },
@@ -46660,9 +46883,20 @@ var DoctorInputC = React.createClass({
       );
     });
 
+    var defaults = { name: '', numandstreet: '', city: '', state: '', zip: '',
+      phone: '', url: '', education: '', hospaff: '', specialties: '' };
+
+    defaults = $.extend(defaults, this.props.location.query);
+    defaults.url = decodeURIComponent(defaults.url);
+
     return React.createElement(
       'div',
-      { style: { width: "50%", paddingLeft: "2em" } },
+      { style: { width: "50%", paddingLeft: "2em", paddingTop: "2em" } },
+      React.createElement(
+        Button,
+        { bsSize: 'large', bsStyle: 'primary', onClick: this.submitList },
+        'Go to doctor list'
+      ),
       React.createElement(
         'h1',
         null,
@@ -46671,23 +46905,41 @@ var DoctorInputC = React.createClass({
       React.createElement(
         'form',
         { onSubmit: this.submitDoctor },
-        React.createElement(Input, { type: 'text', ref: 'name', label: 'Name', required: true }),
+        React.createElement(Input, { type: 'text', ref: 'name', label: 'Name',
+          defaultValue: defaults.name, required: true }),
         React.createElement(
           'p',
           null,
           'Address'
         ),
-        React.createElement(Input, { type: 'text', ref: 'numandstreet', label: 'Number and Street', required: true }),
-        React.createElement(Input, { type: 'text', ref: 'city', label: 'City', required: true }),
-        React.createElement(Input, { type: 'text', ref: 'state', label: 'State (e.g. CA, MA, etc)', required: true }),
-        React.createElement(Input, { type: 'text', ref: 'zip', label: 'Zip (5 Digits)', required: true }),
+        React.createElement(Input, { type: 'text', ref: 'numandstreet', label: 'Number and Street',
+          defaultValue: defaults.numandstreet, required: true }),
+        React.createElement(Input, { type: 'text', ref: 'city', label: 'City',
+          defaultValue: defaults.city, required: true }),
+        React.createElement(Input, { type: 'text', ref: 'state', label: 'State (e.g. CA, MA, etc)',
+          defaultValue: defaults.state, required: true }),
+        React.createElement(Input, { type: 'text', ref: 'zip', label: 'Zip (5 Digits)',
+          defaultValue: defaults.zip, required: true }),
         React.createElement(
           'p',
           null,
           'Contact'
         ),
-        React.createElement(Input, { type: 'text', ref: 'phone', label: 'Phone (No punctuation, 10 digits, e.g. 6175551234)', required: true }),
-        React.createElement(Input, { type: 'text', ref: 'url', label: 'Website URL (No http://)', required: true }),
+        React.createElement(Input, { type: 'text', ref: 'phone', label: 'Phone (No punctuation, 10 digits, e.g. 6175551234)',
+          defaultValue: defaults.phone, required: true }),
+        React.createElement(Input, { type: 'text', ref: 'url', label: 'Website URL (No http://)',
+          defaultValue: defaults.url, required: true }),
+        React.createElement(
+          'p',
+          null,
+          'Description'
+        ),
+        React.createElement(Input, { type: 'textarea', ref: 'education', label: 'Education',
+          defaultValue: defaults.education, required: true }),
+        React.createElement(Input, { type: 'text', ref: 'hospaff', label: 'Hospital Affiliation',
+          defaultValue: defaults.hospaff, required: true }),
+        React.createElement(Input, { type: 'text', ref: 'specialties', label: 'Specialties',
+          defaultValue: defaults.specialties, required: true }),
         React.createElement(
           Table,
           { striped: true, condensed: true },
@@ -46738,6 +46990,8 @@ var DoctorInputC = React.createClass({
           { style: { color: "green" } },
           this.state.success ? this.state.successMessage : ''
         ),
+        React.createElement(Input, { type: 'checkbox', checked: this.state.doUpdate,
+          label: 'Update existing doctor?', onChange: this.changeUpdate }),
         React.createElement(
           'div',
           null,
@@ -46762,21 +47016,47 @@ var aux = require('./../app/aux');
 
 var Panel = require('react-bootstrap/lib/Panel');
 var Table = require('react-bootstrap/lib/Table');
+var Input = require('react-bootstrap/lib/Input');
+var Button = require('react-bootstrap/lib/Button');
 
 var DoctorListC = React.createClass({
   displayName: 'DoctorListC',
 
+  submitNew: function () {
+    this.props.history.push('/doctorinput');
+  },
+  submitEdit: function (doc) {
+    doc.doUpdate = true;
+    this.props.history.push('/doctorinput?' + $.param(doc));
+  },
+  submitDelete: function (doc) {
+    var doDelete = confirm("test");
+    console.log('Delete? ' + doDelete);
+    if (doDelete) {
+      aux.deleteDoctor(doc, (worked, data) => {
+        if (worked) {
+          console.log(data);
+          this.loadData();
+        } else {
+          console.log('it did not work');
+          this.loadData();
+        }
+      });
+    }
+  },
   getInitialState: function () {
     return { doctors: [] };
   },
-
-  componentWillMount: function () {
+  loadData: function () {
     aux.retrieveDoctors((worked, data) => {
       if (worked) {
         console.log(data);
         this.setState({ doctors: data.doctors });
       } else console.log('it did not work');
     });
+  },
+  componentWillMount: function () {
+    this.loadData();
   },
   listToListString: function (list) {
     var outString = '';
@@ -46788,10 +47068,28 @@ var DoctorListC = React.createClass({
   },
   render: function () {
     console.log("Rendering doc table, num items:", this.state.doctors.length);
-    var docRows = this.state.doctors.map(doc => {
+    var docRows = this.state.doctors.map((doc, i) => {
       return React.createElement(
         'tr',
         null,
+        React.createElement(
+          'td',
+          null,
+          React.createElement(
+            Button,
+            { bsStyle: 'link', onClick: this.submitEdit.bind(this, doc) },
+            'Edit'
+          )
+        ),
+        React.createElement(
+          'td',
+          null,
+          React.createElement(
+            Button,
+            { bsStyle: 'link', onClick: this.submitDelete.bind(this, doc) },
+            'Delete'
+          )
+        ),
         React.createElement(
           'td',
           null,
@@ -46826,6 +47124,21 @@ var DoctorListC = React.createClass({
           'td',
           null,
           decodeURIComponent(doc.url)
+        ),
+        React.createElement(
+          'td',
+          null,
+          doc.education
+        ),
+        React.createElement(
+          'td',
+          null,
+          doc.hospaff
+        ),
+        React.createElement(
+          'td',
+          null,
+          doc.specialties
         ),
         React.createElement(
           'td',
@@ -46867,6 +47180,8 @@ var DoctorListC = React.createClass({
           React.createElement(
             'tr',
             null,
+            React.createElement('th', null),
+            React.createElement('th', null),
             React.createElement(
               'th',
               null,
@@ -46905,6 +47220,21 @@ var DoctorListC = React.createClass({
             React.createElement(
               'th',
               null,
+              'Education'
+            ),
+            React.createElement(
+              'th',
+              null,
+              'Hospital Affiliation'
+            ),
+            React.createElement(
+              'th',
+              null,
+              'Specialties'
+            ),
+            React.createElement(
+              'th',
+              null,
               'Procedures'
             ),
             React.createElement(
@@ -46934,6 +47264,11 @@ var DoctorListC = React.createClass({
           null,
           docRows
         )
+      ),
+      React.createElement(
+        Button,
+        { bsSize: 'large', bsStyle: 'primary', onClick: this.submitNew },
+        'Create New Doctor'
       )
     );
   }
@@ -46941,7 +47276,7 @@ var DoctorListC = React.createClass({
 
 module.exports = DoctorListC;
 
-},{"./../app/aux":2,"jquery":108,"react":416,"react-bootstrap/lib/Panel":216,"react-bootstrap/lib/Table":220,"react-dom":232,"react-router":281}],430:[function(require,module,exports){
+},{"./../app/aux":2,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/Input":199,"react-bootstrap/lib/Panel":216,"react-bootstrap/lib/Table":220,"react-dom":232,"react-router":281}],430:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 var $ = require('jquery');
@@ -46975,9 +47310,9 @@ var DoctorProfileC = React.createClass({
   },
   render: function () {
     var nameStyle = {
-      fontSize: 2 + "em",
+      fontSize: 2.25 + "em",
       fontFamily: "Roboto",
-      fontWeight: "300",
+      fontWeight: "bold",
       color: "#103853"
     };
     var headerStyle = {
@@ -47005,6 +47340,18 @@ var DoctorProfileC = React.createClass({
     };
     var fifthStyle = {
       fontSize: 1 + "em",
+      fontFamily: "Calibri",
+      color: "#000000"
+    };
+    var sixthStyle = {
+      fontSize: 1 + "em",
+      fontFamily: "Calibri",
+      color: "#000000",
+      fontStyle: "italic"
+    };
+    var seventhStyle = {
+      fontSize: 1.75 + "em",
+      fontStyle: "italic",
       fontFamily: "Calibri",
       color: "#000000"
     };
@@ -47082,9 +47429,14 @@ var DoctorProfileC = React.createClass({
           Col,
           { xs: 5, sm: 5, md: 5, lg: 5 },
           React.createElement(
-            'span',
+            'div',
             { style: nameStyle },
             this.props.doctor.name + ", MD"
+          ),
+          React.createElement(
+            'div',
+            { style: seventhStyle },
+            this.props.doctor.specialties
           )
         ),
         React.createElement(
@@ -47114,29 +47466,44 @@ var DoctorProfileC = React.createClass({
           ),
           React.createElement(
             'div',
-            { style: { marginTop: "1em" } },
+            { style: { marginTop: "1em", marginBottom: "1em" } },
             React.createElement(
-              'span',
+              'div',
               { style: secondStyle },
               'Education'
+            ),
+            React.createElement(
+              'div',
+              { style: sixthStyle },
+              this.props.doctor.education
             )
           ),
           React.createElement(
             'div',
-            { style: { marginTop: "3em" } },
+            { style: { marginTop: "1em", marginBottom: "1em" } },
             React.createElement(
-              'span',
+              'div',
               { style: secondStyle },
               'Hospital Affiliation'
+            ),
+            React.createElement(
+              'div',
+              { style: sixthStyle },
+              this.props.doctor.hospaff
             )
           ),
           React.createElement(
             'div',
-            { style: { marginTop: "3em" } },
+            { style: { marginTop: "1em", marginBottom: "1em" } },
             React.createElement(
-              'span',
+              'div',
               { style: secondStyle },
               'Specialties'
+            ),
+            React.createElement(
+              'div',
+              { style: sixthStyle },
+              this.props.doctor.specialties
             )
           )
         ),
@@ -47243,6 +47610,13 @@ var DoctorResultC = React.createClass({
       color: "#000000",
       textAlign: "center"
     };
+    var specialtiesStyle = {
+      fontSize: 1 + "em",
+      fontStyle: "italic",
+      fontFamily: "Calibri",
+      fontWeight: "bold",
+      color: "#000000"
+    };
     var priceStyle = {
       fontSize: 1.75 + "em",
       fontFamily: "Calibri",
@@ -47252,6 +47626,8 @@ var DoctorResultC = React.createClass({
     };
     var priceInd = this.props.doctor.procedures.indexOf(this.props.procedure);
     var price = this.props.doctor.prices[priceInd];
+
+    var specialties = this.props.doctor.specialties ? this.props.doctor.specialties : ' ';
 
     return React.createElement(
       Panel,
@@ -47268,9 +47644,14 @@ var DoctorResultC = React.createClass({
         Col,
         { xs: 5, sm: 5, md: 5, lg: 5 },
         React.createElement(
-          'span',
+          'div',
           { style: nameStyle },
           this.props.doctor.name + ", MD"
+        ),
+        React.createElement(
+          'div',
+          { style: specialtiesStyle },
+          specialties
         )
       ),
       React.createElement(
@@ -47309,6 +47690,7 @@ var Row = require('react-bootstrap/lib/Row');
 var Col = require('react-bootstrap/lib/Col');
 var Button = require('react-bootstrap/lib/Button');
 var ButtonToolbar = require('react-bootstrap/lib/ButtonToolbar');
+var Glyphicon = require('react-bootstrap/lib/Glyphicon');
 
 var DoctorResultC = require('./DoctorResultC');
 
@@ -47380,7 +47762,7 @@ var DoctorResultsC = React.createClass({
         null,
         React.createElement(
           Col,
-          { xs: 2, md: 2, lg: 2 },
+          { xs: 4, sm: 3, md: 2, lg: 2 },
           React.createElement(
             'div',
             { style: sortStyle },
@@ -47389,24 +47771,16 @@ var DoctorResultsC = React.createClass({
         ),
         React.createElement(
           Col,
-          null,
+          { xs: 8, sm: 9, md: 10, lg: 10 },
           React.createElement(
             ButtonToolbar,
             null,
             React.createElement(
               Button,
-              { style: sortButtonStyle },
-              'Rating'
-            ),
-            React.createElement(
-              Button,
-              { style: sortButtonStyle },
-              'Price'
-            ),
-            React.createElement(
-              Button,
-              { style: sortButtonStyle },
-              'Distance'
+              { style: sortButtonStyle,
+                onClick: this.props.handlePriceClick },
+              'Price ',
+              React.createElement(Glyphicon, { glyph: this.props.ascending ? "triangle-top" : "triangle-bottom" })
             )
           )
         )
@@ -47421,9 +47795,23 @@ var DoctorResultsC = React.createClass({
   }
 });
 
+/* old toolbar
+          <ButtonToolbar>
+            <Button style={sortButtonStyle}>
+              Rating
+            </Button>
+            <Button style={sortButtonStyle}>
+              Price
+            </Button>
+            <Button style={sortButtonStyle}>
+              Distance
+            </Button>
+          </ButtonToolbar>
+*/
+
 module.exports = DoctorResultsC;
 
-},{"./../app/aux":2,"./DoctorResultC":431,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/ButtonToolbar":185,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/Grid":197,"react-bootstrap/lib/Panel":216,"react-bootstrap/lib/Row":217,"react-bootstrap/lib/Table":220,"react-dom":232,"react-router":281}],433:[function(require,module,exports){
+},{"./../app/aux":2,"./DoctorResultC":431,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/ButtonToolbar":185,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/Glyphicon":196,"react-bootstrap/lib/Grid":197,"react-bootstrap/lib/Panel":216,"react-bootstrap/lib/Row":217,"react-bootstrap/lib/Table":220,"react-dom":232,"react-router":281}],433:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 var $ = require('jquery');
@@ -47685,6 +48073,70 @@ module.exports = FBCallbackC;
 
 },{"./../app/authentication":1,"jquery":108,"react":416,"react-dom":232}],435:[function(require,module,exports){
 var React = require('react');
+var Input = require('react-bootstrap/lib/Input');
+var aux = require('./../app/aux');
+
+var Row = require('react-bootstrap/lib/Row');
+var Col = require('react-bootstrap/lib/Col');
+var InputPriceDebounceC = require('./InputPriceDebounceC');
+
+var FilterPriceC = React.createClass({
+  displayName: 'FilterPriceC',
+
+
+  render: function () {
+    var headerStyle = {
+      fontSize: 1.5 + "em",
+      fontFamily: "Calibri",
+      color: "#000000"
+    };
+    var labelStyle = {
+      fontSize: 1.25 + "em",
+      fontFamily: "Calibri",
+      color: "#000000",
+      fontStyle: "italic",
+      textAlign: "center"
+    };
+    console.log('Rendering FilterPriceC');
+    console.log('Initial Min', this.props.initialMin);
+    return React.createElement(
+      Row,
+      null,
+      React.createElement(
+        Col,
+        { xs: 12, sm: 12, md: 12, lg: 12, style: headerStyle },
+        'Price'
+      ),
+      React.createElement(
+        Col,
+        { xs: 6, sm: 6, md: 6, lg: 6 },
+        React.createElement(InputPriceDebounceC, { initialValue: this.props.initialMin,
+          placeholder: 'Min', onChange: this.props.handleMin }),
+        React.createElement(
+          'div',
+          { style: labelStyle },
+          'Min'
+        )
+      ),
+      React.createElement(
+        Col,
+        { xs: 6, sm: 6, md: 6, lg: 6 },
+        React.createElement(InputPriceDebounceC, { initialValue: this.props.initialMax,
+          placeholder: 'Max', onChange: this.props.handleMax }),
+        React.createElement(
+          'div',
+          { style: labelStyle },
+          'Max'
+        )
+      )
+    );
+  }
+});
+
+module.exports = FilterPriceC;
+
+},{"./../app/aux":2,"./InputPriceDebounceC":439,"react":416,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/Input":199,"react-bootstrap/lib/Row":217}],436:[function(require,module,exports){
+var React = require('react');
 var ReactDOM = require('react-dom');
 var $ = require('jquery');
 var Link = require('react-router').Link;
@@ -47888,7 +48340,7 @@ var ForgotModalC = React.createClass({
 
 module.exports = ForgotModalC;
 
-},{"./../app/authentication":1,"./FullscreenC":436,"./SearchBoxC":443,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/ButtonGroup":183,"react-bootstrap/lib/ButtonInput":184,"react-bootstrap/lib/ButtonToolbar":185,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/DropdownButton":189,"react-bootstrap/lib/Grid":197,"react-bootstrap/lib/Image":198,"react-bootstrap/lib/Input":199,"react-bootstrap/lib/MenuItem":201,"react-bootstrap/lib/Modal":202,"react-bootstrap/lib/Row":217,"react-dom":232,"react-router":281}],436:[function(require,module,exports){
+},{"./../app/authentication":1,"./FullscreenC":437,"./SearchBoxC":445,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/ButtonGroup":183,"react-bootstrap/lib/ButtonInput":184,"react-bootstrap/lib/ButtonToolbar":185,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/DropdownButton":189,"react-bootstrap/lib/Grid":197,"react-bootstrap/lib/Image":198,"react-bootstrap/lib/Input":199,"react-bootstrap/lib/MenuItem":201,"react-bootstrap/lib/Modal":202,"react-bootstrap/lib/Row":217,"react-dom":232,"react-router":281}],437:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 
@@ -48016,7 +48468,7 @@ var LandingPage = React.createClass({
 */
 module.exports = FullscreenC;
 
-},{"react":416,"react-dom":232}],437:[function(require,module,exports){
+},{"react":416,"react-dom":232}],438:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 var $ = require('jquery');
@@ -48059,14 +48511,17 @@ var InfoC = React.createClass({
   submitSearch: function (e) {
     e.preventDefault();
     console.log(this.refs.proc.getValue());
-    console.log(this.refs.city.getValue());
-    var filter = {};
-    filter.city = this.refs.city.getValue();
+    console.log(this.state.city);
 
-    if (this.refs.proc.getValue() !== '') filter.procedure = this.refs.proc.getValue();
+    if (this.refs.proc.getValue() !== '') {
+      var filter = {};
+      filter.city = this.state.city;
 
-    //this.context.router.replace('/doctors?'+$.param(filter))
-    this.props.history.push('/doctors?' + $.param(filter));
+      if (this.refs.proc.getValue() !== '') filter.procedure = this.refs.proc.getValue();
+
+      //this.context.router.replace('/doctors?'+$.param(filter))
+      this.props.history.push('/info?' + $.param(filter));
+    }
   },
   submitLogout: function () {
     console.log('I clicked logout');
@@ -48091,7 +48546,15 @@ var InfoC = React.createClass({
       loggedIn: auth.loggedIn(),
       error: false,
       errorMessage: '',
+      ascending: true,
+
+      initialMin: undefined,
+      initialMax: undefined,
+      min: undefined,
+      max: undefined,
       doctors: [],
+      doctorsAll: [],
+
       city: '',
       procedure: '',
       showDoctorList: true,
@@ -48104,7 +48567,54 @@ var InfoC = React.createClass({
     console.log('LandingPage: get initial state loggedIn is: ', auth.loggedIn());
     return state;
   },
+  filterDoctors: function (doctors, proc, min, max) {
+    console.log(arguments);
+    var filteredDoctors = [];
+    for (var i = 0; i < doctors.length; i++) {
+      var priceInd = doctors[i].procedures.indexOf(proc);
+      var price = doctors[i].prices[priceInd];
+      console.log(price);
+      if (price >= min && price <= max) filteredDoctors.push(doctors[i]);
+    }
+    return filteredDoctors;
+  },
+  handleMin: function (value, success) {
+    console.log("Min says", value, success);
+    if (success) {
+      console.log('Filter on', value);
+      var filteredDoctors = this.filterDoctors(this.state.doctorsAll, this.state.procedure, value, this.state.max);
+      this.setState({ doctors: filteredDoctors, min: value });
+    }
+  },
+  handleMax: function (value, success) {
+    console.log("Max says", value, success);
+    if (success) {
+      console.log('Filter on', value);
+      var filteredDoctors = this.filterDoctors(this.state.doctorsAll, this.state.procedure, this.state.min, value);
+      this.setState({ doctors: filteredDoctors, max: value });
+    }
+  },
 
+  handlePriceClick: function (e) {
+    e.preventDefault();
+
+    /*
+    var primerFunc = function(priceArray,doctor,proc){
+      console.log('where am i');
+      console.log(proc);
+      var priceInd = 
+        doctor.procedures.indexOf(proc);
+      var price = pricesArray[priceInd];
+      return price;
+    };
+    sortedDocs = aux.sortObjects(this.state.doctors,'prices',false,
+                primerFunc,this.state.procedure);
+    console.log(sortedDocs);
+    */
+
+    this.setState({ ascending: !this.state.ascending });
+    console.log("Price order is now ascending:" + this.state.ascending);
+  },
   handleDoctorClick: function (doctor, e) {
     e.preventDefault();
     console.log('We clicked a doctor');
@@ -48135,7 +48645,25 @@ var InfoC = React.createClass({
     aux.retrieveDoctorsQuery(filter, (worked, data) => {
       if (worked) {
         console.log(data);
-        var state = { doctors: data.doctors };
+        var doctors = data.doctors;
+
+        // sort by price
+        if (query.procedure) {
+          var prices = [];
+          for (var i = 0; i < doctors.length; i++) {
+            var priceInd = doctors[i].procedures.indexOf(query.procedure);
+            prices.push(doctors[i].prices[priceInd]);
+          }
+          var sortedData = this.state.ascending ? aux.sortTwoAscending(prices, doctors) : aux.sortTwoDescending(prices, doctors);
+          console.log(sortedData[1]);
+          doctors = sortedData[1];
+        }
+
+        var currentMin = aux.arrayMin(prices);
+        var currentMax = aux.arrayMax(prices);
+        var state = { doctors: doctors, doctorsAll: doctors,
+          initialMin: currentMin, initialMax: currentMax,
+          min: currentMin, max: currentMax };
         if (query.city) state.city = query.city;
         if (query.procedure) state.procedure = query.procedure;
         this.setState(state);
@@ -48150,13 +48678,13 @@ var InfoC = React.createClass({
     this.loadData();
   },
 
-  componentDidUpdate: function (prevProps) {
+  componentDidUpdate: function (prevProps, prevState) {
     var oldQuery = prevProps.location.query;
     var newQuery = this.props.location.query;
     console.log(prevProps);
     console.log(oldQuery);
     console.log(newQuery);
-    if (oldQuery.city === newQuery.city && oldQuery.procedure === newQuery.procedure) {
+    if (oldQuery.city === newQuery.city && oldQuery.procedure === newQuery.procedure && this.state.ascending === prevState.ascending) {
       console.log("DoctorsC: componentDidUpdate, no change in filter, not updating");
       return;
     } else {
@@ -48318,9 +48846,10 @@ var InfoC = React.createClass({
     };
     var innerButton = React.createElement(
       Button,
-      { style: { backgroundColor: "#0971BA" } },
+      { type: 'submit', style: { backgroundColor: "#0971BA" } },
       React.createElement(Glyphicon, { glyph: 'search' })
     );
+
     return React.createElement(
       FullscreenC,
       { backgroundColor: '#d7dbe4' },
@@ -48345,15 +48874,19 @@ var InfoC = React.createClass({
           Col,
           { xs: 3, sm: 3, md: 4, lg: 4, style: searchDivStyle },
           React.createElement(
-            Input,
-            { type: 'select', ref: 'proc', style: procBosListStyle,
-              bsSize: 'large', buttonAfter: innerButton },
+            'form',
+            { onSubmit: this.submitSearch },
             React.createElement(
-              'option',
-              { value: '', disabled: true, selected: true },
-              'Search by procedure'
-            ),
-            procedureListItems
+              Input,
+              { type: 'select', ref: 'proc', style: procBosListStyle,
+                bsSize: 'large', buttonAfter: innerButton },
+              React.createElement(
+                'option',
+                { value: '', disabled: true, selected: true },
+                'Search by procedure'
+              ),
+              procedureListItems
+            )
           )
         )
       ),
@@ -48368,7 +48901,12 @@ var InfoC = React.createClass({
             { style: { backgroundColor: "white" } },
             this.state.showDoctorList ? React.createElement(ResultsC, { doctors: this.state.doctors,
               procedure: this.state.procedure, city: this.state.city,
-              handleDoctorClick: this.handleDoctorClick }) : this.state.showDoctorProfile ? React.createElement(DoctorProfileC, { procedure: this.state.procedure,
+              handleDoctorClick: this.handleDoctorClick,
+              handlePriceClick: this.handlePriceClick,
+              ascending: this.state.ascending,
+              handleMin: this.handleMin, handleMax: this.handleMax,
+              initialMin: this.state.min,
+              initialMax: this.state.max }) : this.state.showDoctorProfile ? React.createElement(DoctorProfileC, { procedure: this.state.procedure,
               city: this.state.city, doctor: this.state.doctor,
               handleBackClick: this.handleBackClick,
               handleQuoteClick: this.handleQuoteClick }) : React.createElement(QuoteC, { procedure: this.state.procedure,
@@ -48426,7 +48964,66 @@ var LandingPage = React.createClass({
 
 module.exports = InfoC;
 
-},{"./../app/authentication":1,"./../app/aux":2,"./DoctorProfileC":430,"./DoctorsC":433,"./ForgotModalC":435,"./FullscreenC":436,"./QuoteC":440,"./ResultsC":442,"./SearchBoxC":443,"./WelcomeModalC":445,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/ButtonGroup":183,"react-bootstrap/lib/ButtonToolbar":185,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/DropdownButton":189,"react-bootstrap/lib/Glyphicon":196,"react-bootstrap/lib/Grid":197,"react-bootstrap/lib/Input":199,"react-bootstrap/lib/MenuItem":201,"react-bootstrap/lib/Modal":202,"react-bootstrap/lib/Row":217,"react-bootstrap/lib/Tab":219,"react-bootstrap/lib/Tabs":221,"react-dom":232,"react-router":281}],438:[function(require,module,exports){
+},{"./../app/authentication":1,"./../app/aux":2,"./DoctorProfileC":430,"./DoctorsC":433,"./ForgotModalC":436,"./FullscreenC":437,"./QuoteC":442,"./ResultsC":444,"./SearchBoxC":445,"./WelcomeModalC":447,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/ButtonGroup":183,"react-bootstrap/lib/ButtonToolbar":185,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/DropdownButton":189,"react-bootstrap/lib/Glyphicon":196,"react-bootstrap/lib/Grid":197,"react-bootstrap/lib/Input":199,"react-bootstrap/lib/MenuItem":201,"react-bootstrap/lib/Modal":202,"react-bootstrap/lib/Row":217,"react-bootstrap/lib/Tab":219,"react-bootstrap/lib/Tabs":221,"react-dom":232,"react-router":281}],439:[function(require,module,exports){
+var React = require('react');
+var Input = require('react-bootstrap/lib/Input');
+var aux = require('./../app/aux');
+
+var InputPriceDebounceC = React.createClass({
+  displayName: 'InputPriceDebounceC',
+
+  getDefaultProps: function () {
+    return {
+      initialValue: '',
+      onChange: function (e) {
+        console.log('fire action creator ' + e.target.value);
+      }
+    };
+  },
+  getInitialState: function () {
+    console.log("From input debounce, initial value", this.props.initialValue);
+    return {
+      value: this.props.initialValue,
+      onChange: this.props.onChange,
+      error: false
+    };
+  },
+  componentWillReceiveProps: function (nextProps) {
+    console.log('Input debounce will receive new props', nextProps);
+    this.setState({
+      value: nextProps.initialValue
+    });
+  },
+  _searchOnServer: _.debounce(function (value, success) {
+    console.log(value);
+    this.state.onChange(value, success);
+  }, 800),
+  handleChange: function (e) {
+    var regexPrice = /^\d+(\.\d*)?$/;
+    var escapedPrice = aux.escapeHTML(e.target.value);
+    if (!regexPrice.test(escapedPrice)) {
+      this._searchOnServer(escapedPrice, false);
+      return this.setState({ value: escapedPrice, error: true });
+    }
+
+    console.log(e);
+    console.log(e.target.value);
+    console.log(escapedPrice);
+    this.setState({ value: escapedPrice, error: false });
+    this._searchOnServer(escapedPrice, true);
+  },
+  render: function () {
+    console.log('Rendering InputDebounceC');
+    console.log(this.props.initialValue);
+    console.log(this.state);
+    var state = this.state;
+    return React.createElement(Input, { bsStyle: this.state.error ? "error" : undefined, placeholder: this.props.placeholder, type: 'text', value: state.value, onChange: this.handleChange });
+  }
+});
+
+module.exports = InputPriceDebounceC;
+
+},{"./../app/aux":2,"react":416,"react-bootstrap/lib/Input":199}],440:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 var $ = require('jquery');
@@ -48828,7 +49425,7 @@ var LandingPage = React.createClass({
 
 module.exports = LandingPageC;
 
-},{"./../app/authentication":1,"./ForgotModalC":435,"./FullscreenC":436,"./SearchBoxC":443,"./WelcomeModalC":445,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/ButtonGroup":183,"react-bootstrap/lib/ButtonToolbar":185,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/DropdownButton":189,"react-bootstrap/lib/Grid":197,"react-bootstrap/lib/Input":199,"react-bootstrap/lib/MenuItem":201,"react-bootstrap/lib/Row":217,"react-dom":232,"react-router":281}],439:[function(require,module,exports){
+},{"./../app/authentication":1,"./ForgotModalC":436,"./FullscreenC":437,"./SearchBoxC":445,"./WelcomeModalC":447,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/ButtonGroup":183,"react-bootstrap/lib/ButtonToolbar":185,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/DropdownButton":189,"react-bootstrap/lib/Grid":197,"react-bootstrap/lib/Input":199,"react-bootstrap/lib/MenuItem":201,"react-bootstrap/lib/Row":217,"react-dom":232,"react-router":281}],441:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 //var $ = require('jquery');
@@ -48897,7 +49494,7 @@ var NavBarC = React.createClass({
 
 module.exports = NavBarC;
 
-},{"react":416,"react-bootstrap/lib/Nav":208,"react-bootstrap/lib/NavItem":210,"react-bootstrap/lib/Navbar":211,"react-dom":232}],440:[function(require,module,exports){
+},{"react":416,"react-bootstrap/lib/Nav":208,"react-bootstrap/lib/NavItem":210,"react-bootstrap/lib/Navbar":211,"react-dom":232}],442:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 var $ = require('jquery');
@@ -49186,7 +49783,7 @@ var QuoteC = React.createClass({
 //{this.state.error ? this.state.errorMessage : 'No error'}
 module.exports = QuoteC;
 
-},{"./../app/authentication":1,"./../app/aux":2,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/ButtonInput":184,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/Glyphicon":196,"react-bootstrap/lib/Grid":197,"react-bootstrap/lib/Input":199,"react-bootstrap/lib/Row":217,"react-bootstrap/lib/Table":220,"react-dom":232}],441:[function(require,module,exports){
+},{"./../app/authentication":1,"./../app/aux":2,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/ButtonInput":184,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/Glyphicon":196,"react-bootstrap/lib/Grid":197,"react-bootstrap/lib/Input":199,"react-bootstrap/lib/Row":217,"react-bootstrap/lib/Table":220,"react-dom":232}],443:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 var $ = require('jquery');
@@ -49316,7 +49913,7 @@ var ResetC = React.createClass({
 //{this.state.error ? this.state.errorMessage : 'No error'}
 module.exports = ResetC;
 
-},{"./../app/authentication":1,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/ButtonInput":184,"react-bootstrap/lib/Input":199,"react-dom":232}],442:[function(require,module,exports){
+},{"./../app/authentication":1,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/ButtonInput":184,"react-bootstrap/lib/Input":199,"react-dom":232}],444:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 
@@ -49326,6 +49923,7 @@ var Row = require('react-bootstrap/lib/Row');
 var Col = require('react-bootstrap/lib/Col');
 
 var DoctorResultsC = require('./DoctorResultsC');
+var FilterPriceC = require('./FilterPriceC');
 
 var ResultsC = React.createClass({
   displayName: 'ResultsC',
@@ -49386,7 +49984,9 @@ var ResultsC = React.createClass({
           { xs: 6, sm: 6, md: 6, lg: 6 },
           React.createElement(DoctorResultsC, { doctors: this.props.doctors,
             procedure: this.props.procedure, city: this.props.city,
-            handleDoctorClick: this.props.handleDoctorClick })
+            handleDoctorClick: this.props.handleDoctorClick,
+            handlePriceClick: this.props.handlePriceClick,
+            ascending: this.props.ascending })
         ),
         React.createElement(
           Col,
@@ -49399,7 +49999,11 @@ var ResultsC = React.createClass({
               { style: filterByStyle },
               'Filter by:'
             )
-          )
+          ),
+          React.createElement(FilterPriceC, { handleMin: this.props.handleMin,
+            handleMax: this.props.handleMax,
+            initialMin: this.props.initialMin,
+            initialMax: this.props.initialMax })
         )
       )
     );
@@ -49409,7 +50013,7 @@ var ResultsC = React.createClass({
 
 module.exports = ResultsC;
 
-},{"./DoctorResultsC":432,"react":416,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/Grid":197,"react-bootstrap/lib/Row":217,"react-dom":232}],443:[function(require,module,exports){
+},{"./DoctorResultsC":432,"./FilterPriceC":435,"react":416,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/Grid":197,"react-bootstrap/lib/Row":217,"react-dom":232}],445:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 var Link = require('react-router').Link;
@@ -49464,7 +50068,7 @@ var SearchBoxC = React.createClass({
 
 module.exports = SearchBoxC;
 
-},{"react":416,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/Grid":197,"react-bootstrap/lib/Input":199,"react-bootstrap/lib/Row":217,"react-dom":232,"react-router":281}],444:[function(require,module,exports){
+},{"react":416,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/Grid":197,"react-bootstrap/lib/Input":199,"react-bootstrap/lib/Row":217,"react-dom":232,"react-router":281}],446:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 var $ = require('jquery');
@@ -49560,7 +50164,7 @@ var SignupC = React.createClass({
 //{this.state.error ? this.state.errorMessage : 'No error'}
 module.exports = SignupC;
 
-},{"./../app/authentication":1,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/ButtonInput":184,"react-bootstrap/lib/Input":199,"react-dom":232}],445:[function(require,module,exports){
+},{"./../app/authentication":1,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/ButtonInput":184,"react-bootstrap/lib/Input":199,"react-dom":232}],447:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 var $ = require('jquery');
@@ -49821,4 +50425,4 @@ module.exports = WelcomeModalC;
             </div>
             */
 
-},{"./../app/authentication":1,"./FullscreenC":436,"./SearchBoxC":443,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/ButtonGroup":183,"react-bootstrap/lib/ButtonInput":184,"react-bootstrap/lib/ButtonToolbar":185,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/DropdownButton":189,"react-bootstrap/lib/Grid":197,"react-bootstrap/lib/Image":198,"react-bootstrap/lib/Input":199,"react-bootstrap/lib/MenuItem":201,"react-bootstrap/lib/Modal":202,"react-bootstrap/lib/Row":217,"react-dom":232,"react-router":281}]},{},[422]);
+},{"./../app/authentication":1,"./FullscreenC":437,"./SearchBoxC":445,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/ButtonGroup":183,"react-bootstrap/lib/ButtonInput":184,"react-bootstrap/lib/ButtonToolbar":185,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/DropdownButton":189,"react-bootstrap/lib/Grid":197,"react-bootstrap/lib/Image":198,"react-bootstrap/lib/Input":199,"react-bootstrap/lib/MenuItem":201,"react-bootstrap/lib/Modal":202,"react-bootstrap/lib/Row":217,"react-dom":232,"react-router":281}]},{},[422]);

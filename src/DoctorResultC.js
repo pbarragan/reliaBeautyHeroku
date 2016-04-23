@@ -39,6 +39,13 @@ var DoctorResultC = React.createClass({
       color: "#000000",
       textAlign: "center"
     };
+    var specialtiesStyle = {
+      fontSize: 1+"em",
+      fontStyle: "italic",
+      fontFamily: "Calibri",
+      fontWeight: "bold",
+      color: "#000000"
+    };
     var priceStyle = {
       fontSize: 1.75+"em",
       fontFamily: "Calibri",
@@ -51,6 +58,9 @@ var DoctorResultC = React.createClass({
     var price = 
       this.props.doctor.prices[priceInd];
 
+    var specialties = this.props.doctor.specialties ?
+                      this.props.doctor.specialties:' ';
+
     return (
      <Panel style={{backgroundColor:"#d7dbe4",
       marginTop:"0.25em",marginBottom:"0.25em"}}
@@ -60,7 +70,8 @@ var DoctorResultC = React.createClass({
           src="./img/profilePictureSM.png" responsive />
       </Col>
       <Col xs={5} sm={5} md={5} lg={5}>
-        <span style={nameStyle}>{this.props.doctor.name+", MD"}</span>
+        <div style={nameStyle}>{this.props.doctor.name+", MD"}</div>
+        <div style={specialtiesStyle}>{specialties}</div>
       </Col>
       <Col xs={4} sm={4} md={4} lg={4}>
         <div style={priceStyle}>

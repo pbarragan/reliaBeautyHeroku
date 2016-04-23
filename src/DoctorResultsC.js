@@ -13,6 +13,7 @@ var Row = require('react-bootstrap/lib/Row');
 var Col = require('react-bootstrap/lib/Col');
 var Button  = require('react-bootstrap/lib/Button');
 var ButtonToolbar = require('react-bootstrap/lib/ButtonToolbar');
+var Glyphicon = require('react-bootstrap/lib/Glyphicon');
 
 var DoctorResultC = require('./DoctorResultC');
 
@@ -79,19 +80,16 @@ var DoctorResultsC = React.createClass({
     return (
      <div style={{marginTop:"0.5em",marginBottom:"0.5em"}}>
       <Row>
-        <Col xs={2} md={2} lg={2}>
+        <Col xs={4} sm={3} md={2} lg={2}>
           <div style={sortStyle}>Sort: by</div>
         </Col>
-        <Col>
+        <Col xs={8} sm={9} md={10} lg={10}>
           <ButtonToolbar>
-            <Button style={sortButtonStyle}>
-              Rating
-            </Button>
-            <Button style={sortButtonStyle}>
-              Price
-            </Button>
-            <Button style={sortButtonStyle}>
-              Distance
+            <Button style={sortButtonStyle} 
+              onClick={this.props.handlePriceClick}>
+              {'Price '}
+              <Glyphicon glyph={this.props.ascending ?
+                "triangle-top":"triangle-bottom"} />
             </Button>
           </ButtonToolbar>
         </Col>
@@ -104,5 +102,19 @@ var DoctorResultsC = React.createClass({
      )
   }
 });
+
+/* old toolbar
+          <ButtonToolbar>
+            <Button style={sortButtonStyle}>
+              Rating
+            </Button>
+            <Button style={sortButtonStyle}>
+              Price
+            </Button>
+            <Button style={sortButtonStyle}>
+              Distance
+            </Button>
+          </ButtonToolbar>
+*/
 
 module.exports = DoctorResultsC;

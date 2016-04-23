@@ -6,14 +6,38 @@ var aux = require('./../app/aux');
 
 var Panel = require('react-bootstrap/lib/Panel');
 var Table = require('react-bootstrap/lib/Table');
+var Input = require('react-bootstrap/lib/Input');
+var Button  = require('react-bootstrap/lib/Button');
 
 
 var DoctorListC = React.createClass({
+  submitNew: function(){
+    this.props.history.push('/doctorinput');
+  },
+  submitEdit: function(doc){
+    doc.doUpdate = true;
+    this.props.history.push('/doctorinput?'+$.param(doc));
+  },
+  submitDelete: function(doc){
+    var doDelete = confirm("test");
+    console.log('Delete? '+doDelete)
+    if(doDelete){
+      aux.deleteDoctor(doc,(worked,data)=>{
+        if(worked){
+          console.log(data);
+          this.loadData();
+        }
+        else{
+         console.log('it did not work');
+         this.loadData();
+        }
+      });
+    }
+  },
   getInitialState: function() {
     return {doctors: []};
   },
-
-  componentWillMount: function(){
+  loadData: function(){
     aux.retrieveDoctors((worked,data)=>{
       if(worked){
         console.log(data);
@@ -21,7 +45,10 @@ var DoctorListC = React.createClass({
       }
       else console.log('it did not work');
 
-    });
+    });    
+  },
+  componentWillMount: function(){
+    this.loadData();
   },
   listToListString: function(list){
     var outString = '';
@@ -33,9 +60,15 @@ var DoctorListC = React.createClass({
   },
   render: function() {
     console.log("Rendering doc table, num items:", this.state.doctors.length);
-    var docRows = this.state.doctors.map((doc) => {
+    var docRows = this.state.doctors.map((doc,i) => {
       return (
       <tr>
+      <td>
+        <Button bsStyle="link" onClick={this.submitEdit.bind(this,doc)}>Edit</Button>
+      </td>
+      <td>
+        <Button bsStyle="link" onClick={this.submitDelete.bind(this,doc)}>Delete</Button>
+      </td>
       <td>{doc.name}</td>
       <td>{doc.numandstreet}</td>
       <td>{doc.city}</td>
@@ -43,6 +76,9 @@ var DoctorListC = React.createClass({
       <td>{doc.zip}</td>
       <td>{doc.phone}</td>
       <td>{decodeURIComponent(doc.url)}</td>
+      <td>{doc.education}</td>
+      <td>{doc.hospaff}</td>
+      <td>{doc.specialties}</td>
       <td>{this.listToListString(doc.procedures)}</td>
       <td>{this.listToListString(doc.prices)}</td>
       <td>{this.listToListString(doc.percents)}</td>
@@ -57,6 +93,8 @@ var DoctorListC = React.createClass({
      <Table striped bordered condensed>
      <thead>
      <tr>
+     <th></th>
+     <th></th>
      <th>Name</th>
      <th>Number and Street</th>
      <th>City</th>
@@ -64,6 +102,9 @@ var DoctorListC = React.createClass({
      <th>Zip</th>
      <th>Phone</th>
      <th>URL</th>
+     <th>Education</th>
+     <th>Hospital Affiliation</th>
+     <th>Specialties</th>
      <th>Procedures</th>
      <th>Prices</th>
      <th>Percents</th>
@@ -75,6 +116,7 @@ var DoctorListC = React.createClass({
      {docRows}
      </tbody>
      </Table>
+     <Button bsSize="large" bsStyle="primary" onClick={this.submitNew}>Create New Doctor</Button>
      </Panel>
      )
   }

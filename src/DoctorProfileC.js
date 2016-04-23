@@ -29,9 +29,9 @@ var DoctorProfileC = React.createClass({
   },
   render: function() {
     var nameStyle = {
-      fontSize: 2+"em",
+      fontSize: 2.25+"em",
       fontFamily: "Roboto",
-      fontWeight: "300",
+      fontWeight: "bold",
       color: "#103853"
     };
     var headerStyle = {
@@ -61,6 +61,18 @@ var DoctorProfileC = React.createClass({
       fontSize: 1+"em",
       fontFamily: "Calibri",
       color: "#000000",
+    };
+    var sixthStyle = {
+      fontSize: 1+"em",
+      fontFamily: "Calibri",
+      color: "#000000",
+      fontStyle: "italic",
+    };
+    var seventhStyle = {
+      fontSize: 1.75+"em",
+      fontStyle: "italic",
+      fontFamily: "Calibri",
+      color: "#000000"
     };
 
     var backButtonStyle = {
@@ -120,7 +132,8 @@ var DoctorProfileC = React.createClass({
               src="./img/profilePictureSM.png" responsive thumbnail/>
           </Col>
           <Col xs={5} sm={5} md={5} lg={5}>
-            <span style={nameStyle}>{this.props.doctor.name+", MD"}</span>
+            <div style={nameStyle}>{this.props.doctor.name+", MD"}</div>
+            <div style={seventhStyle}>{this.props.doctor.specialties}</div>
           </Col>
           <Col xs={4} sm={4} md={4} lg={4}>
             <Button bsSize="large" style={quoteButtonStyle}
@@ -137,14 +150,17 @@ var DoctorProfileC = React.createClass({
             <div style={headerStyle}>
               Qualifications
             </div>
-            <div style={{marginTop:"1em"}}>
-              <span style={secondStyle}>Education</span>
+            <div style={{marginTop:"1em",marginBottom:"1em"}}>
+              <div style={secondStyle}>Education</div>
+              <div style={sixthStyle}>{this.props.doctor.education}</div>
             </div>
-            <div style={{marginTop:"3em"}}>
-              <span style={secondStyle}>Hospital Affiliation</span>
+            <div style={{marginTop:"1em",marginBottom:"1em"}}>
+              <div style={secondStyle}>Hospital Affiliation</div>
+              <div style={sixthStyle}>{this.props.doctor.hospaff}</div>
             </div>
-            <div style={{marginTop:"3em"}}>
-              <span style={secondStyle}>Specialties</span>
+            <div style={{marginTop:"1em",marginBottom:"1em"}}>
+              <div style={secondStyle}>Specialties</div>
+              <div style={sixthStyle}>{this.props.doctor.specialties}</div>
             </div>
           </Col>
           <Col xs={5} sm={5} md={5} lg={5}

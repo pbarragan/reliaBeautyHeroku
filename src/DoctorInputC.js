@@ -18,31 +18,56 @@ var DoctorInputC = React.createClass({
     "Breast augmentation","Breast Lift","Breast Reduction",
     "Breast Reconstruction","Brazilian butt lift","Mommy Makeover",
     "Arm Lift","Body Lift"],
+  submitList: function(){
+    this.props.history.push('/doctorlist');
+  },
+  componentDidMount: function() {
+    console.log("Default value: "+this.refs.name.getValue());
+    console.log(this.props.defaultName);
+  },
 	getInitialState: function() {
     console.log(this.procedureList);
-    console.log(aux);
-    console.log(aux.escapeHTML)
- 
+    //console.log(aux);
+    //console.log(aux.escapeHTML)
+    console.log(this.props)
+    console.log(this.props.location.query.procedures);
+    console.log(this.props.location.query['procedures[]']);
+
     var procs = [];
-    for(var i=0;i<this.procedureList.length;i++)
-      procs.push({id: this.procedureList[i], selected: false, price: '0'});
+    for(var i=0;i<this.procedureList.length;i++){
+      var isSelected = false;
+      var procPrice = '0';
+      if(this.props.location.query['procedures[]'] 
+        && this.props.location.query['prices[]']){
+        var procInd = 
+          this.props.location.query['procedures[]'].indexOf(this.procedureList[i]);
+        if(procInd !== -1){
+          isSelected = true;
+          procPrice = ''+this.props.location.query['prices[]'][procInd];
+        }
+      }
+      procs.push({id: this.procedureList[i], selected: isSelected, price: procPrice});
+    }
 
-    	return {
-        error: false,
-      	errorMessage: '',
-        success: false,
-        successMessage: '',
+    var doUpdate = this.props.location.query.doUpdate ? true : false;
+    console.log('I passed doUpdate? :'+doUpdate)
+    return {
+      error: false,
+      errorMessage: '',
+      success: false,
+      successMessage: '',
+      doUpdate: doUpdate,
 
-        name: '',
-        numandstreet: '',
-        city: '',
-        state: '',
-        zip: '',
-        phone: '',
-        url: '',
-        procedures: procs
-    	}
-  	},
+      name: '',
+      numandstreet: '',
+      city: '',
+      state: '',
+      zip: '',
+      phone: '',
+      url: '',
+      procedures: procs
+    }
+  },
   handleChange: function(e){
     console.log(e.target);
     console.log(e.target.value);
@@ -52,6 +77,10 @@ var DoctorInputC = React.createClass({
     console.log(e.target.checked);
 
   },
+   changeUpdate: function(e) {
+    console.log(e.target.checked);
+    this.setState({doUpdate: e.target.checked});
+  }, 
   changeSelection: function(id) {
         var procs = this.state.procedures.map(function(d) {
             return {
@@ -88,7 +117,7 @@ var DoctorInputC = React.createClass({
   },
   validateAndPrepState: function(state){
     var procArr = [], priceArr = [];
-    var regexPrice = /^[+-]?\d+(\.\d+)?$/;
+    var regexPrice = /^\d+(\.\d*)?$/;
     var regexZip = /^[0-9]{5}$/;
     var regexPhone = /^[0-9]{10}$/;
     var regexURL = /[-a-zA-Z0-9@:%_\+.~#?&\/\/=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)?/i;
@@ -128,6 +157,9 @@ var DoctorInputC = React.createClass({
       zip: escapedZip,
       phone: escapedPhone,
       url: encodeURIComponent(this.refs.url.getValue()),
+      education: aux.escapeHTML(this.refs.education.getValue()),
+      hospaff: aux.escapeHTML(this.refs.hospaff.getValue()),
+      specialties: aux.escapeHTML(this.refs.specialties.getValue()),
       procedures: procArr,
       prices: priceArr
     }}
@@ -141,15 +173,32 @@ var DoctorInputC = React.createClass({
 
       console.log('data ready');
       console.log(result.obj);
-      aux.submitDoctor(result.obj,(worked,message) =>{
-        if(worked){ console.log("doctor submit worked");
-        this.setState({success: true,successMessage:"Doctor submit worked"});
+
+      if(this.state.doUpdate){
+        if(this.props.location.query._id)
+          result.obj._id = this.props.location.query._id;
+
+        aux.updateDoctor(result.obj,(worked,message) =>{
+          if(worked){ console.log("doctor update worked");
+            this.setState({success: true,successMessage:"Doctor update worked"});
+          }
+          else{ console.log("doctor update did not work");
+            this.setState({error: true,
+            errorMessage:"Doctor update did not work: "+message});
+          }
+        });        
       }
-        else{ console.log("doctor signup did not work");
-        this.setState({error: true,
-          errorMessage:"Doctor submit did not work: "+message});
+      else{
+        aux.submitDoctor(result.obj,(worked,message) =>{
+          if(worked){ console.log("doctor submit worked");
+            this.setState({success: true,successMessage:"Doctor submit worked"});
+          }
+          else{ console.log("doctor submit did not work");
+            this.setState({error: true,
+            errorMessage:"Doctor submit did not work: "+message});
+          }
+        });
       }
-      })
     }
     else this.setState({error:true,
       errorMessage:"This entry is invalid:"+result.obj})
@@ -174,18 +223,40 @@ var DoctorInputC = React.createClass({
         )
     });
 
+    var defaults = {name:'',numandstreet:'',city:'',state:'',zip:'',
+                    phone:'',url:'',education:'',hospaff:'',specialties:''}
+
+    defaults = $.extend(defaults,this.props.location.query);
+    defaults.url = decodeURIComponent(defaults.url);
+
 		return (
-      <div style={{width:"50%", paddingLeft:"2em"}}><h1>Fill in all the doctor information</h1>
+      <div style={{width:"50%", paddingLeft:"2em",paddingTop:"2em"}}>
+      <Button bsSize="large" bsStyle="primary" onClick={this.submitList}>Go to doctor list</Button>
+      <h1>Fill in all the doctor information</h1>
 			<form onSubmit={this.submitDoctor}>
-            <Input type="text" ref="name" label="Name" required/>
+            <Input type="text" ref="name" label="Name" 
+              defaultValue={defaults.name} required/>
             <p>Address</p>
-            <Input type="text" ref="numandstreet" label="Number and Street" required />
-            <Input type="text" ref="city" label="City" required/>
-            <Input type="text" ref="state" label="State (e.g. CA, MA, etc)" required/>
-            <Input type="text" ref="zip" label="Zip (5 Digits)" required/>
+            <Input type="text" ref="numandstreet" label="Number and Street" 
+              defaultValue={defaults.numandstreet} required />
+            <Input type="text" ref="city" label="City" 
+              defaultValue={defaults.city}required/>
+            <Input type="text" ref="state" label="State (e.g. CA, MA, etc)" 
+              defaultValue={defaults.state} required/>
+            <Input type="text" ref="zip" label="Zip (5 Digits)" 
+              defaultValue={defaults.zip} required/>
             <p>Contact</p>
-            <Input type="text" ref="phone" label="Phone (No punctuation, 10 digits, e.g. 6175551234)" required/>
-            <Input type="text" ref="url" label="Website URL (No http://)" required/>
+            <Input type="text" ref="phone" label="Phone (No punctuation, 10 digits, e.g. 6175551234)" 
+              defaultValue={defaults.phone} required/>
+            <Input type="text" ref="url" label="Website URL (No http://)" 
+              defaultValue={defaults.url} required/>
+            <p>Description</p>
+            <Input type="textarea" ref="education" label="Education" 
+              defaultValue={defaults.education} required/>
+            <Input type="text" ref="hospaff" label="Hospital Affiliation" 
+              defaultValue={defaults.hospaff} required/>
+            <Input type="text" ref="specialties" label="Specialties" 
+              defaultValue={defaults.specialties} required/>
 
             <Table striped condensed>
             <thead>
@@ -212,6 +283,8 @@ var DoctorInputC = React.createClass({
             {this.state.success ? this.state.successMessage : ''}
             </div>
 
+            <Input type="checkbox" checked={this.state.doUpdate}
+            label="Update existing doctor?" onChange={this.changeUpdate} />
             <div>
             	<ButtonInput type="submit" value="Submit"
             		bsSize="large" />

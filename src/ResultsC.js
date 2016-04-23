@@ -7,6 +7,7 @@ var Row = require('react-bootstrap/lib/Row');
 var Col = require('react-bootstrap/lib/Col');
 
 var DoctorResultsC = require('./DoctorResultsC');
+var FilterPriceC = require('./FilterPriceC');
 
 
 var ResultsC = React.createClass({
@@ -45,12 +46,18 @@ var ResultsC = React.createClass({
           <Col xs={6} sm={6} md={6} lg={6}>
             <DoctorResultsC doctors={this.props.doctors}
             procedure={this.props.procedure} city={this.props.city}
-            handleDoctorClick={this.props.handleDoctorClick} />          
+            handleDoctorClick={this.props.handleDoctorClick} 
+            handlePriceClick={this.props.handlePriceClick}
+            ascending={this.props.ascending} />          
           </Col>
           <Col xs={3} sm={3} md={3} lg={3}>
             <div style={{marginTop:"3em",marginLeft:"0.5em"}}>
               <span style={filterByStyle}>Filter by:</span>
             </div>
+            <FilterPriceC handleMin={this.props.handleMin} 
+              handleMax={this.props.handleMax} 
+              initialMin={this.props.initialMin}
+              initialMax={this.props.initialMax}/>
           </Col>
         </Row>
         </Grid>

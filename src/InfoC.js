@@ -38,15 +38,18 @@ var InfoC = React.createClass({
   submitSearch: function(e){
     e.preventDefault();
     console.log(this.refs.proc.getValue());    
-    console.log(this.refs.city.getValue());
-    var filter = {};
-    filter.city = this.refs.city.getValue();
+    console.log(this.state.city);
+ 
+    if(this.refs.proc.getValue() !== ''){
+      var filter = {};
+      filter.city = this.state.city;
 
-    if(this.refs.proc.getValue() !== '')
-      filter.procedure = this.refs.proc.getValue();
+      if(this.refs.proc.getValue() !== '')
+        filter.procedure = this.refs.proc.getValue();
 
-    //this.context.router.replace('/doctors?'+$.param(filter))
-    this.props.history.push('/doctors?'+$.param(filter));
+      //this.context.router.replace('/doctors?'+$.param(filter))
+      this.props.history.push('/info?'+$.param(filter));
+    }
   },
   submitLogout: function() {
     console.log('I clicked logout');
@@ -71,7 +74,15 @@ var InfoC = React.createClass({
                   loggedIn: auth.loggedIn(),
                   error: false,
                   errorMessage: '',
+                  ascending:true,
+
+                  initialMin:undefined,
+                  initialMax:undefined,
+                  min:undefined,
+                  max:undefined,
                   doctors: [],
+                  doctorsAll: [],
+
                   city: '',
                   procedure: '',
                   showDoctorList: true,
@@ -86,7 +97,61 @@ var InfoC = React.createClass({
     console.log('LandingPage: get initial state loggedIn is: ', auth.loggedIn());
     return state;
   },
+  filterDoctors: function(doctors,proc,min,max){
+    console.log(arguments);
+    var filteredDoctors = [];
+    for(var i=0;i<doctors.length;i++){
+      var priceInd = doctors[i].procedures.indexOf(proc);
+      var price = doctors[i].prices[priceInd];
+      console.log(price);
+      if(price>=min && price<=max)
+        filteredDoctors.push(doctors[i]);
+    }
+    return filteredDoctors;
+  },
+  handleMin: function(value,success){
+    console.log("Min says",value,success);
+    if(success){
+      console.log('Filter on',value);
+      var filteredDoctors = 
+        this.filterDoctors(this.state.doctorsAll,
+                            this.state.procedure,
+                            value,this.state.max);
+      this.setState({doctors:filteredDoctors,min:value});
+    }
+  },
+  handleMax: function(value,success){
+    console.log("Max says",value,success);
+    if(success){
+      console.log('Filter on',value);
+      var filteredDoctors = 
+        this.filterDoctors(this.state.doctorsAll,
+                            this.state.procedure,
+                            this.state.min,value)
+      this.setState({doctors:filteredDoctors,max:value});
+    }
+  },
 
+  handlePriceClick: function(e){
+    e.preventDefault();
+
+    /*
+    var primerFunc = function(priceArray,doctor,proc){
+      console.log('where am i');
+      console.log(proc);
+      var priceInd = 
+        doctor.procedures.indexOf(proc);
+      var price = pricesArray[priceInd];
+      return price;
+    };
+    sortedDocs = aux.sortObjects(this.state.doctors,'prices',false,
+                primerFunc,this.state.procedure);
+    console.log(sortedDocs);
+    */
+
+    this.setState({ascending:!this.state.ascending});
+    console.log("Price order is now ascending:"+this.state.ascending);
+  },
   handleDoctorClick: function(doctor,e){
     e.preventDefault();
     console.log('We clicked a doctor');
@@ -119,7 +184,27 @@ var InfoC = React.createClass({
     aux.retrieveDoctorsQuery(filter,(worked,data)=>{
       if(worked){
         console.log(data);
-        var state = {doctors:data.doctors};
+        var doctors = data.doctors;
+
+        // sort by price
+        if (query.procedure){
+        var prices = [];
+        for(var i=0;i<doctors.length;i++){
+          var priceInd = doctors[i].procedures.indexOf(query.procedure);
+          prices.push(doctors[i].prices[priceInd])
+        }
+        var sortedData = this.state.ascending ?
+                        aux.sortTwoAscending(prices,doctors)
+                        : aux.sortTwoDescending(prices,doctors);
+        console.log(sortedData[1]);
+        doctors = sortedData[1];
+        }
+
+        var currentMin = aux.arrayMin(prices)
+        var currentMax = aux.arrayMax(prices)
+        var state = {doctors:doctors,doctorsAll:doctors,
+                    initialMin:currentMin,initialMax:currentMax,
+                    min:currentMin,max:currentMax};
         if (query.city)
           state.city = query.city;
         if (query.procedure)
@@ -137,14 +222,15 @@ var InfoC = React.createClass({
     this.loadData();
   },
 
-  componentDidUpdate: function(prevProps){
+  componentDidUpdate: function(prevProps,prevState){
   var oldQuery = prevProps.location.query;
   var newQuery = this.props.location.query;
   console.log(prevProps);
   console.log(oldQuery);
   console.log(newQuery)
   if (oldQuery.city === newQuery.city &&
-    oldQuery.procedure === newQuery.procedure) {
+    oldQuery.procedure === newQuery.procedure && 
+    this.state.ascending === prevState.ascending) {
     console.log("DoctorsC: componentDidUpdate, no change in filter, not updating");
     return;
   } else {
@@ -300,7 +386,11 @@ var InfoC = React.createClass({
       top: 1+"em",
       bottom: 1+"em"
     };
-    var innerButton = <Button style={{backgroundColor:"#0971BA"}}><Glyphicon glyph="search" /></Button>;
+    var innerButton = 
+      <Button type="submit" style={{backgroundColor:"#0971BA"}}>
+        <Glyphicon glyph="search" />
+      </Button>;
+
     return (
       <FullscreenC backgroundColor="#d7dbe4">
         <div style={{marginLeft:"1em",marginTop:"0.5em",marginBottom:"0.25em"}}>
@@ -309,11 +399,13 @@ var InfoC = React.createClass({
           <span style={bellaStyle}>BELLA.</span>
         </div>
         <Col xs={3} sm={3} md={4} lg={4} style={searchDivStyle}>
+          <form onSubmit={this.submitSearch}>
           <Input type="select" ref="proc" style={procBosListStyle} 
             bsSize="large" buttonAfter={innerButton}>
             <option value="" disabled selected>Search by procedure</option>
             {procedureListItems}                         
           </Input>
+          </form>
         </Col>
         </div>
         <Tabs tabWidth={12} activeKey={this.state.tabKey} onSelect={this.handleTabSelect}>
@@ -322,7 +414,12 @@ var InfoC = React.createClass({
             {this.state.showDoctorList ?
               (<ResultsC doctors={this.state.doctors}
               procedure={this.state.procedure} city={this.state.city}
-              handleDoctorClick={this.handleDoctorClick}/>)
+              handleDoctorClick={this.handleDoctorClick}
+              handlePriceClick={this.handlePriceClick}
+              ascending={this.state.ascending}
+              handleMin={this.handleMin} handleMax={this.handleMax}
+              initialMin={this.state.min}
+              initialMax={this.state.max} />)
               : 
               this.state.showDoctorProfile ?
               (<DoctorProfileC procedure={this.state.procedure} 

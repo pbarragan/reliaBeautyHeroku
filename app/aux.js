@@ -14,6 +14,51 @@ module.exports = {
       return entityMap[s];
     });
   },
+
+  arrayMax(numArray) {
+    return Math.max.apply(null, numArray);
+  },
+  arrayMin(numArray) {
+    return Math.min.apply(null, numArray);
+  },
+
+  //------------- Don't use these
+  sortBy(field, reverse, primer){
+    console.log('whats the deal');
+    var key = primer ? 
+      function(x) {return primer().apply(null,[x[field],x].concat(Array.prototype.slice.call(arguments, 3)))} : 
+      function(x) {return x[field]};
+
+    reverse = !reverse ? 1 : -1;
+
+    return function (a, b) {
+      a = key(a);
+      b = key(b);
+      return reverse * ((a > b) - (b > a));
+    } 
+  },
+  sortObjects(docs,field,reverse,primer){
+    console.log('im here');
+    return docs.sort(this.sortBy().apply(null,Array.prototype.slice.call(arguments, 1)));
+  },
+  //------------- END Don't use these
+
+  sortTwoAscending(A,B){
+    // assuming a and b are the same length
+    // assume a is what to sort on
+    var ASorted = A.map(function(e,i){return i;}).sort(function(a,b){return A[a] - A[b];}).map(function(e){return A[e];});
+    var BSorted = A.map(function(e,i){return i;}).sort(function(a,b){return A[a] - A[b];}).map(function(e){return B[e];});
+    return [ASorted,BSorted]
+  },
+  sortTwoDescending(A,B){
+    // assuming a and b are the same length
+    // assume a is what to sort on
+    var ASorted = A.map(function(e,i){return i;}).sort(function(a,b){return A[b] - A[a];}).map(function(e){return A[e];});
+    var BSorted = A.map(function(e,i){return i;}).sort(function(a,b){return A[b] - A[a];}).map(function(e){return B[e];});
+    return [ASorted,BSorted]
+  },
+
+  // AJAX Calls
   submitDoctor(data,cb) {
       console.log('im in the submit doctor function');
       var request = {data: data};
@@ -43,6 +88,64 @@ module.exports = {
         }
       );
     },
+    updateDoctor(data,cb) {
+      console.log('im in the update doctor function');
+      var request = {data: data};
+      cb = arguments[arguments.length - 1];
+
+      console.log('i got to the ajax call');
+      console.log(request);
+
+      $.ajax({
+        context: this,
+        url: '/update/doctor', 
+        type: 'POST', 
+        contentType:'application/json',
+        data: JSON.stringify(request),
+        dataType: 'json',
+        headers: {'x-access-token':localStorage.token}
+      })
+      .then(function (data)  {
+          console.log(data);
+          console.log(data.message);
+          if (cb) cb(true,'');
+        },
+        function (data)  {
+          console.log(data);
+          console.log(data.responseJSON.message);
+          if (cb) cb(false,data.responseJSON.message);
+        }
+      );
+    },
+  deleteDoctor(data,cb) {
+      console.log('im in the delete doctor function');
+      var request = {data: data};
+      cb = arguments[arguments.length - 1];
+
+      console.log('i got to the ajax call');
+      console.log(request);
+
+      $.ajax({
+        context: this,
+        url: '/delete/doctor', 
+        type: 'POST', 
+        contentType:'application/json',
+        data: JSON.stringify(request),
+        dataType: 'json',
+        headers: {'x-access-token':localStorage.token}
+      })
+      .then(function (data)  {
+          console.log(data);
+          console.log(data.message);
+          if (cb) cb(true,'');
+        },
+        function (data)  {
+          console.log(data);
+          console.log(data.responseJSON.message);
+          if (cb) cb(false,data.responseJSON.message);
+        }
+      );
+  },
     retrieveDoctors(cb) {
       console.log('im in the retrieve doctors function');
       var request = {hello: 'hello'};

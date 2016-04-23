@@ -20,6 +20,8 @@ var DoctorInputC = require('./DoctorInputC');
 var DoctorListC = require('./DoctorListC');
 var DoctorsC = require('./DoctorsC');
 var InfoC = require('./InfoC');
+var InputPriceDebounceC = require('./InputPriceDebounceC');
+var FilterPriceC = require('./FilterPriceC');
 
 var $ = require('jquery');
 
@@ -118,6 +120,56 @@ var CheckAjaxC = React.createClass({
       <h2>Info below</h2>
       <p>{this.state.info}</p>
       </div>
+    );
+  }
+});
+
+var Main = React.createClass({
+  getDefaultProps: function () {
+    return {
+      initialValue: '',
+      onChange: null
+    };
+  },
+  getInitialState: function () {
+    return {
+      value: this.props.initialValue
+    };
+  },
+  _searchOnServer: _.debounce(function(value){
+        console.log('fire action creator');
+    },800),
+  handleChange: function (e) {
+    console.log(e);
+    console.log( e.target.value );
+        this.setState({value: e.target.value});
+        this._searchOnServer(e.target.value);
+  },
+  render: function () {
+    var state = this.state;
+    return (
+      <input placeholder="type and see console" type="text" value={state.value} onChange={this.handleChange} />
+    );
+  }
+});
+
+var InputDebounceTest = React.createClass({
+  getInitialState: function () {
+    console.log('getting the initial state');
+    return {
+      value: ''
+    };
+  },
+  handleChange: function (value,success) {
+    console.log("input test says:")
+    console.log(value,success);
+  },
+  render: function () {
+    console.log('Rendering InputDebounceTest')
+    var state = this.state;
+    var price = 100;
+    return (
+      <InputPriceDebounceC initialValue={price} onChange={this.handleChange} />
     );
   }
 });
@@ -258,6 +310,7 @@ ReactDOM.render(
         <Route path="/doctorlist" component={DoctorListC} onEnter={requireAdmin}/>
         <Route path="/doctors" component={DoctorsC} />
         <Route path="/info" component={InfoC} />
+        <Route path="/main" component={FilterPriceC} />
         <Route path="*" component={NoMatch} />
       </Route>
 

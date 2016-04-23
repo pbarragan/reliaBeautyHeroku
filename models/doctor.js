@@ -13,12 +13,14 @@ var doctorSchema = mongoose.Schema({
     zip: String,
     phone: String,
     url: String,
+    education: String,
+    hospaff: String,
+    specialties: String,
     procedures: [String],
     prices: [Number],
     percents: [Number],
     stars: Number,
     imgurl: String
-
 });
 
 /*

@@ -698,7 +698,11 @@ app.put('/api/bugs/:id', function(req, res) {
         //res.json({success:false});
 
 
-        Doctor.findOne({ name :  req.body.data.name }, 
+        Doctor.findOne({name:req.body.data.name,
+                        numandstreet:req.body.data.numandstreet,
+                        city:req.body.data.city,
+                        state:req.body.data.state,
+                        zip:req.body.data.zip}, 
             function(err, doctor) {
             // if there are any errors, return the error
             if (err)
@@ -707,7 +711,7 @@ app.put('/api/bugs/:id', function(req, res) {
                     message: err
                 });
 
-            // check to see if theres already a user with that email
+            // check to see if theres already a doctor with that info
             if (doctor) {
                 return res.status(403).send({ 
                     success: false, 
@@ -715,9 +719,10 @@ app.put('/api/bugs/:id', function(req, res) {
                 });
             } else {
 
-                // create the user
+                // create the doctor
                 var newDoctor            = new Doctor();
 
+                
                 newDoctor.name          = req.body.data.name;
                 newDoctor.numandstreet  = req.body.data.numandstreet;
                 newDoctor.city          = req.body.data.city;
@@ -725,9 +730,12 @@ app.put('/api/bugs/:id', function(req, res) {
                 newDoctor.zip           = req.body.data.zip;
                 newDoctor.phone         = req.body.data.phone;
                 newDoctor.url           = req.body.data.url;
+                newDoctor.education     = req.body.data.education;
+                newDoctor.hospaff       = req.body.data.hospaff;
+                newDoctor.specialties   = req.body.data.specialties;
                 newDoctor.procedures    = req.body.data.procedures;
                 newDoctor.prices        = req.body.data.prices;
-
+                
 
                 newDoctor.save(function(err) {
                     if (err)
@@ -739,6 +747,121 @@ app.put('/api/bugs/:id', function(req, res) {
                     return res.status(200).send({ 
                                 success: true, 
                                 message: 'Doctor save worked'
+                            });
+                });
+            }
+        });
+    });
+
+    app.post('/update/doctor', verifyToken, function(req, res, next) {
+        //console.log(req);
+        //console.log(req.body);
+        console.log('!!!!!!!!');
+        console.log(req.body.data);
+        console.log(req.body.data.procedures.length);
+        //res.json({success:false});
+
+        var filter = req.body.data._id ? {_id:req.body.data._id}
+                        : {name:req.body.data.name,
+                        numandstreet:req.body.data.numandstreet,
+                        city:req.body.data.city,
+                        state:req.body.data.state,
+                        zip:req.body.data.zip};
+
+
+        console.log('The filter became: '+Object.keys(filter).length);
+
+        Doctor.findOne(filter, 
+            function(err, doctor) {
+            // if there are any errors, return the error
+            if (err)
+                return res.status(403).send({ 
+                    success: false, 
+                    message: err
+                });
+
+            // check to see if theres already a doctor with that info
+            if (!doctor) {
+
+
+                return res.status(403).send({ 
+                    success: false, 
+                    message: 'That doctor does not exist.'
+                });
+            } else {
+
+                // update the doctor
+
+                doctor.name          = req.body.data.name;
+                doctor.numandstreet  = req.body.data.numandstreet;
+                doctor.city          = req.body.data.city;
+                doctor.state         = req.body.data.state.toUpperCase();
+                doctor.zip           = req.body.data.zip;
+                doctor.phone         = req.body.data.phone;
+                doctor.url           = req.body.data.url;
+                doctor.education     = req.body.data.education;
+                doctor.hospaff       = req.body.data.hospaff;
+                doctor.specialties   = req.body.data.specialties;
+                doctor.procedures    = req.body.data.procedures;
+                doctor.prices        = req.body.data.prices;
+
+
+                doctor.save(function(err) {
+                    if (err)
+                        return res.status(403).send({ 
+                                    success: false, 
+                                    message: err
+                                });
+
+                    return res.status(200).send({ 
+                                success: true, 
+                                message: 'Doctor update worked'
+                            });
+                });
+            }
+        });
+    });
+
+    app.post('/delete/doctor', verifyToken, function(req, res, next) {
+        //console.log(req);
+        //console.log(req.body);
+        console.log('!!!!!!!!');
+        console.log(req.body.data);
+        console.log(req.body.data.procedures.length);
+        //res.json({success:false});
+
+        var filter = {_id:req.body.data._id};
+
+        console.log('The filter became: '+Object.keys(filter).length);
+
+        Doctor.findOne(filter, 
+            function(err, doctor) {
+            // if there are any errors, return the error
+            if (err)
+                return res.status(403).send({ 
+                    success: false, 
+                    message: err
+                });
+
+            // check to see if theres already a doctor with that info
+            if (!doctor) {
+
+
+                return res.status(403).send({ 
+                    success: false, 
+                    message: 'That doctor does not exist.'
+                });
+            } else {
+                doctor.remove(function(err) {
+                    if (err)
+                        return res.status(403).send({ 
+                                    success: false, 
+                                    message: err
+                                });
+
+                    return res.status(200).send({ 
+                                success: true, 
+                                message: 'Doctor delete worked'
                             });
                 });
             }
@@ -770,7 +893,8 @@ function verifyToken(req,res,next) {
     // verifies secret and checks exp
     jwt.verify(token, app.get('superSecret'), function(err, decoded) {      
       if (err) {
-        return res.json({ success: false, message: 'Failed to authenticate token.' });    
+        console.log("Failed to authenticate token: "+err)
+        return res.status(403).send({ success: false, message: 'Failed to authenticate token.' });    
       } else {
         // if everything is good, save to request for use in other routes
         req.decoded = decoded;    
