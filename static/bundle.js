@@ -48583,7 +48583,8 @@ var InfoC = React.createClass({
     if (success) {
       console.log('Filter on', value);
       var filteredDoctors = this.filterDoctors(this.state.doctorsAll, this.state.procedure, value, this.state.max);
-      this.setState({ doctors: filteredDoctors, min: value });
+      var sortedFilteredDoctors = this.sortByPrice(this.state.ascending, this.state.procedure, filteredDoctors);
+      this.setState({ doctors: sortedFilteredDoctors, min: value });
     }
   },
   handleMax: function (value, success) {
@@ -48591,7 +48592,8 @@ var InfoC = React.createClass({
     if (success) {
       console.log('Filter on', value);
       var filteredDoctors = this.filterDoctors(this.state.doctorsAll, this.state.procedure, this.state.min, value);
-      this.setState({ doctors: filteredDoctors, max: value });
+      var sortedFilteredDoctors = this.sortByPrice(this.state.ascending, this.state.procedure, filteredDoctors);
+      this.setState({ doctors: sortedFilteredDoctors, max: value });
     }
   },
 
@@ -48612,7 +48614,8 @@ var InfoC = React.createClass({
     console.log(sortedDocs);
     */
 
-    this.setState({ ascending: !this.state.ascending });
+    this.setState({ ascending: !this.state.ascending,
+      doctors: this.sortByPrice(!this.state.ascending, this.state.procedure, this.state.doctors) });
     console.log("Price order is now ascending:" + this.state.ascending);
   },
   handleDoctorClick: function (doctor, e) {
@@ -48635,7 +48638,15 @@ var InfoC = React.createClass({
     console.log('We went back from quote');
     this.setState({ showDoctorProfile: true });
   },
-
+  sortByPrice: function (ascending, procedure, doctors) {
+    var prices = [];
+    for (var i = 0; i < doctors.length; i++) {
+      var priceInd = doctors[i].procedures.indexOf(procedure);
+      prices.push(doctors[i].prices[priceInd]);
+    }
+    var sortedDoctors = ascending ? aux.sortTwoAscending(prices, doctors) : aux.sortTwoDescending(prices, doctors);
+    return sortedDoctors[1];
+  },
   loadData: function () {
     var query = this.props.location.query || {};
     var filter = {};
@@ -48654,9 +48665,7 @@ var InfoC = React.createClass({
             var priceInd = doctors[i].procedures.indexOf(query.procedure);
             prices.push(doctors[i].prices[priceInd]);
           }
-          var sortedData = this.state.ascending ? aux.sortTwoAscending(prices, doctors) : aux.sortTwoDescending(prices, doctors);
-          console.log(sortedData[1]);
-          doctors = sortedData[1];
+          doctors = this.sortByPrice(this.state.ascending, query.procedure, doctors);
         }
 
         var currentMin = aux.arrayMin(prices);
@@ -48684,7 +48693,7 @@ var InfoC = React.createClass({
     console.log(prevProps);
     console.log(oldQuery);
     console.log(newQuery);
-    if (oldQuery.city === newQuery.city && oldQuery.procedure === newQuery.procedure && this.state.ascending === prevState.ascending) {
+    if (oldQuery.city === newQuery.city && oldQuery.procedure === newQuery.procedure) {
       console.log("DoctorsC: componentDidUpdate, no change in filter, not updating");
       return;
     } else {
