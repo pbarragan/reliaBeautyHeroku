@@ -7,7 +7,7 @@ module.exports = {
     'facebookAuth' : {
         'clientID'        : '260098477669182', // your App ID
         'clientSecret'    : 'bf5e0e535bf754bca5fb7d3216a05dc8', // your App Secret
-        'callbackURL'     : 'http://reliabeauty.herokuapp.com/auth/facebook/callback'
+        'callbackURL'     : 'http://www.snapbella.com/auth/facebook/callback'
     }
 /*,
     'twitterAuth' : {
