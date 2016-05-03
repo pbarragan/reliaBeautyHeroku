@@ -661,11 +661,11 @@ app.put('/api/bugs/:id', function(req, res) {
 
         // The new way where you convert city to state
         if (req.query.city)
-            if(filter.city === "Boston")
+            if(req.query.city === "Boston")
                 filter.state = "MA";
-            else if(filter.city === "Los Angeles")
+            else if(req.query.city === "Los Angeles")
                 filter.state = "CA";
-            else if(filter.city === "New York")
+            else if(req.query.city === "New York")
                 filter.state = "NY";
 
         // search array of procedures as follows
