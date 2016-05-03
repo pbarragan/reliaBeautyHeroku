@@ -51,6 +51,11 @@ var InfoC = React.createClass({
         filter.procedure = this.refs.proc.getValue();
 
       //this.context.router.replace('/doctors?'+$.param(filter))
+      this.setState({tabKey: 0,
+                      showDoctorList: true,
+                      showDoctorProfile: true,
+                      showProfile: true,
+                      showRequest: false,})
       this.props.history.push('/info?'+$.param(filter));
     }
   },
