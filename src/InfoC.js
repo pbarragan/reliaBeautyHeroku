@@ -71,7 +71,8 @@ var InfoC = React.createClass({
 
   getInitialState: function() {
     var query = this.props.location.query || {};
-    var state = { tabKey: 0, 
+    var tabKeyInit = query.type ? query.type === "search" ? 0:1 : 0;
+    var state = { tabKey: tabKeyInit, 
                   showWelcomeModal: false, 
                   showForgotModal: false,
                   loggedIn: auth.loggedIn(),

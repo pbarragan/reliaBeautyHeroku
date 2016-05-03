@@ -60,8 +60,15 @@ var WelcomeModalC = React.createClass({
           console.log('i am in the nextPathName');
           this.context.router.replace(location.state.nextPathname)
         } else {
+
+          var filter = {};
+          filter.city = this.props.city;
+          filter.procedure = this.props.procedure;
+          filter.type = "profile";
+
           console.log('i am in the profile');
-          this.context.router.replace('/profile')
+          //this.context.router.replace('/profile')
+          this.props.history.push('/info?'+$.param(filter));
         }
 
       });

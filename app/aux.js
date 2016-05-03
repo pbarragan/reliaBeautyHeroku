@@ -189,6 +189,17 @@ module.exports = {
         headers: {'x-access-token':localStorage.token}
       })
       .then(function (data)  {
+        
+          //see if this works
+          for(var i=0; i<data.doctors.length;i++){
+            data.doctors[i].name = this.unescapeHTML(data.doctors[i].name);
+            data.doctors[i].numandstreet = this.unescapeHTML(data.doctors[i].numandstreet);
+            data.doctors[i].city = this.unescapeHTML(data.doctors[i].city);
+            data.doctors[i].education = this.unescapeHTML(data.doctors[i].education);
+            data.doctors[i].hospaff = this.unescapeHTML(data.doctors[i].hospaff);
+            data.doctors[i].specialties = this.unescapeHTML(data.doctors[i].specialties);
+          }
+
           console.log(data);
           if (cb) cb(true,data);
         },

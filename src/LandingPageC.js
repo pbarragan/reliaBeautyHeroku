@@ -32,6 +32,7 @@ var LandingPageC = React.createClass({
     console.log(this.refs.city.getValue());
     var filter = {};
     filter.city = this.refs.city.getValue();
+    filter.type = "search";
 
     if(this.refs.proc.getValue() !== '')
       filter.procedure = this.refs.proc.getValue();
@@ -276,19 +277,24 @@ var LandingPageC = React.createClass({
         </Grid>
 
         <WelcomeModalC showWelcomeModal={this.state.showWelcomeModal} 
-          closeWelcome={this.closeWelcome} openForgot={this.openForgot}/>
+          closeWelcome={this.closeWelcome} openForgot={this.openForgot}
+          city={"Boston"} procedure={"Liposuction"} history={this.props.history}/>
 
         <ForgotModalC showForgotModal={this.state.showForgotModal} 
           closeForgot={this.closeForgot}/>
-        <div style={{position:"absolute",top:0,right:0}}>
-          {this.state.loggedIn ? "Logged In":"Not Logged In"}
-        </div>
+
       </FullscreenC>
       );
 
   }
 
 });
+/*
+        <div style={{position:"absolute",top:0,right:0}}>
+          {this.state.loggedIn ? "Logged In":"Not Logged In"}
+        </div>
+        */
+
 /*
 var styles = StyleSheet.create({
   container: {
