@@ -48064,7 +48064,7 @@ var DoctorProfileC = React.createClass({
               { style: fourthStyle },
               React.createElement(
                 'a',
-                { href: '"' + decodeURIComponent(this.props.doctor.url) + '"' },
+                { href: !/^https?:\/\//.test(decodeURIComponent(this.props.doctor.url)) ? 'http://' + decodeURIComponent(this.props.doctor.url) : decodeURIComponent(this.props.doctor.url) },
                 decodeURIComponent(this.props.doctor.url)
               )
             )
@@ -48084,6 +48084,8 @@ var DoctorProfileC = React.createClass({
     );
   }
 });
+
+//'"'+decodeURIComponent(this.props.doctor.url)+'"'
 
 module.exports = DoctorProfileC;
 
