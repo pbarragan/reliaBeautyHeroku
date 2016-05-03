@@ -476,6 +476,17 @@ module.exports = {
       dataType: 'json',
       headers: { 'x-access-token': localStorage.token }
     }).then(function (data) {
+
+      //see if this works
+      for (var i = 0; i < data.doctors.length; i++) {
+        data.doctors[i].name = this.unescapeHTML(data.doctors[i].name);
+        data.doctors[i].numandstreet = this.unescapeHTML(data.doctors[i].numandstreet);
+        data.doctors[i].city = this.unescapeHTML(data.doctors[i].city);
+        data.doctors[i].education = this.unescapeHTML(data.doctors[i].education);
+        data.doctors[i].hospaff = this.unescapeHTML(data.doctors[i].hospaff);
+        data.doctors[i].specialties = this.unescapeHTML(data.doctors[i].specialties);
+      }
+
       console.log(data);
       if (cb) cb(true, data);
     }, function (data) {
@@ -49052,7 +49063,8 @@ var InfoC = React.createClass({
 
   getInitialState: function () {
     var query = this.props.location.query || {};
-    var state = { tabKey: 0,
+    var tabKeyInit = query.type ? query.type === "search" ? 0 : 1 : 0;
+    var state = { tabKey: tabKeyInit,
       showWelcomeModal: false,
       showForgotModal: false,
       loggedIn: auth.loggedIn(),
@@ -49608,6 +49620,7 @@ var LandingPageC = React.createClass({
     console.log(this.refs.city.getValue());
     var filter = {};
     filter.city = this.refs.city.getValue();
+    filter.type = "search";
 
     if (this.refs.proc.getValue() !== '') filter.procedure = this.refs.proc.getValue();
 
@@ -49925,18 +49938,20 @@ var LandingPageC = React.createClass({
         )
       ),
       React.createElement(WelcomeModalC, { showWelcomeModal: this.state.showWelcomeModal,
-        closeWelcome: this.closeWelcome, openForgot: this.openForgot }),
+        closeWelcome: this.closeWelcome, openForgot: this.openForgot,
+        city: "Boston", procedure: "Liposuction", history: this.props.history }),
       React.createElement(ForgotModalC, { showForgotModal: this.state.showForgotModal,
-        closeForgot: this.closeForgot }),
-      React.createElement(
-        'div',
-        { style: { position: "absolute", top: 0, right: 0 } },
-        this.state.loggedIn ? "Logged In" : "Not Logged In"
-      )
+        closeForgot: this.closeForgot })
     );
   }
 
 });
+/*
+        <div style={{position:"absolute",top:0,right:0}}>
+          {this.state.loggedIn ? "Logged In":"Not Logged In"}
+        </div>
+        */
+
 /*
 var styles = StyleSheet.create({
   container: {
@@ -51307,8 +51322,15 @@ var WelcomeModalC = React.createClass({
         console.log('i am in the nextPathName');
         this.context.router.replace(location.state.nextPathname);
       } else {
+
+        var filter = {};
+        filter.city = this.props.city;
+        filter.procedure = this.props.procedure;
+        filter.type = "profile";
+
         console.log('i am in the profile');
-        this.context.router.replace('/profile');
+        //this.context.router.replace('/profile')
+        this.props.history.push('/info?' + $.param(filter));
       }
     });
 
