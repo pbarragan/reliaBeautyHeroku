@@ -30,6 +30,9 @@ var DoctorsC = require('./DoctorsC');
 var ResultsC = require('./ResultsC');
 var DoctorProfileC = require('./DoctorProfileC');
 var QuoteC = require('./QuoteC');
+var ProfileC = require('./ProfileC');
+var RequestC = require('./RequestC');
+var BidsC = require('./BidsC');
 
 var InfoC = React.createClass({
   contextTypes: {
@@ -87,6 +90,8 @@ var InfoC = React.createClass({
                   procedure: '',
                   showDoctorList: true,
                   showDoctorProfile: true,
+                  showProfile: true,
+                  showRequest: false,
                   doctor: {}
                   };
     if (query.city)
@@ -183,6 +188,28 @@ var InfoC = React.createClass({
     console.log('We went back from quote');
     this.setState({showDoctorProfile:true})
   },
+
+  handleRequestClick: function(e){
+    e.preventDefault();
+    console.log('Go to request');
+    this.setState({showProfile:false,showRequest:true})
+  },
+  handleBidsClick: function(e){
+    e.preventDefault();
+    console.log('Go to bids');
+    this.setState({showProfile:false,showRequest:false})
+  },
+  handleSendClick: function(e){
+    e.preventDefault();
+    console.log('Sent request');
+    this.setState({showProfile:true,showRequest:false})
+  },
+  handleBackToProfile: function(e){
+    e.preventDefault();
+    console.log('Go back to profile');
+    this.setState({showProfile:true,showRequest:false})
+  },
+
   sortByPrice: function(ascending,procedure,doctors){
     var prices = [];
     for(var i=0;i<doctors.length;i++){
@@ -454,7 +481,17 @@ var InfoC = React.createClass({
         </Tab>
         <Tab eventKey={1} title="My profile" tabClassName="tab-name-style">
           <div style={{backgroundColor:"white"}}>
-            Tab 2 content
+            {this.state.showProfile ?
+              (<ProfileC handleRequestClick={this.handleRequestClick}
+                handleBidsClick={this.handleBidsClick} />)
+              : 
+              this.state.showRequest ?
+              (<RequestC procedures={procedureList} 
+                handleSendClick={this.handleSendClick}
+                handleBackToProfile={this.handleBackToProfile}/>)
+              :
+              (<BidsC handleBackToProfile={this.handleBackToProfile}/>)
+            }
           </div>
         </Tab>
       </Tabs>

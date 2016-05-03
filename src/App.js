@@ -20,8 +20,10 @@ var DoctorInputC = require('./DoctorInputC');
 var DoctorListC = require('./DoctorListC');
 var DoctorsC = require('./DoctorsC');
 var InfoC = require('./InfoC');
-var InputPriceDebounceC = require('./InputPriceDebounceC');
-var FilterPriceC = require('./FilterPriceC');
+var BidC = require('./BidC');
+
+//var InputPriceDebounceC = require('./InputPriceDebounceC');
+//var FilterPriceC = require('./FilterPriceC');
 
 var $ = require('jquery');
 
@@ -124,6 +126,7 @@ var CheckAjaxC = React.createClass({
   }
 });
 
+/*
 var Main = React.createClass({
   getDefaultProps: function () {
     return {
@@ -173,6 +176,7 @@ var InputDebounceTest = React.createClass({
     );
   }
 });
+*/
 
 /*
 var FBCallbackC = React.createClass({
@@ -310,7 +314,7 @@ ReactDOM.render(
         <Route path="/doctorlist" component={DoctorListC} onEnter={requireAdmin}/>
         <Route path="/doctors" component={DoctorsC} />
         <Route path="/info" component={InfoC} />
-        <Route path="/main" component={FilterPriceC} />
+        <Route path="/test" component={BidC} />
         <Route path="*" component={NoMatch} />
       </Route>
 

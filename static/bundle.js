@@ -292,6 +292,25 @@ module.exports = {
     });
   },
 
+  /*
+    unescapeHTML(string) {
+    var entityMap = {
+      "&amp;": "&",
+      "&lt;": "<",
+      "&gt;": ">",
+      '&quot;': '"',
+      '&#39;': "'",
+      '&#x2F;': "/"
+    };
+      return String(string).replace(/[&<>"'\/]/g, function (s) {
+        return entityMap[s];
+      });
+    },
+  */
+  unescapeHTML(value) {
+    return String(value).replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').replace(/&#x2F;/g, "/");
+  },
+
   arrayMax(numArray) {
     return Math.max.apply(null, numArray);
   },
@@ -479,6 +498,17 @@ module.exports = {
       data: filter,
       headers: { 'x-access-token': localStorage.token }
     }).then(function (data) {
+
+      //see if this works
+      for (var i = 0; i < data.doctors.length; i++) {
+        data.doctors[i].name = this.unescapeHTML(data.doctors[i].name);
+        data.doctors[i].numandstreet = this.unescapeHTML(data.doctors[i].numandstreet);
+        data.doctors[i].city = this.unescapeHTML(data.doctors[i].city);
+        data.doctors[i].education = this.unescapeHTML(data.doctors[i].education);
+        data.doctors[i].hospaff = this.unescapeHTML(data.doctors[i].hospaff);
+        data.doctors[i].specialties = this.unescapeHTML(data.doctors[i].specialties);
+      }
+
       console.log(data);
       if (cb) cb(true, data);
     }, function (data) {
@@ -45783,8 +45813,10 @@ var DoctorInputC = require('./DoctorInputC');
 var DoctorListC = require('./DoctorListC');
 var DoctorsC = require('./DoctorsC');
 var InfoC = require('./InfoC');
-var InputPriceDebounceC = require('./InputPriceDebounceC');
-var FilterPriceC = require('./FilterPriceC');
+var BidC = require('./BidC');
+
+//var InputPriceDebounceC = require('./InputPriceDebounceC');
+//var FilterPriceC = require('./FilterPriceC');
 
 var $ = require('jquery');
 
@@ -45915,9 +45947,8 @@ var CheckAjaxC = React.createClass({
   }
 });
 
+/*
 var Main = React.createClass({
-  displayName: 'Main',
-
   getDefaultProps: function () {
     return {
       initialValue: '',
@@ -45929,41 +45960,44 @@ var Main = React.createClass({
       value: this.props.initialValue
     };
   },
-  _searchOnServer: _.debounce(function (value) {
-    console.log('fire action creator');
-  }, 800),
+  _searchOnServer: _.debounce(function(value){
+        console.log('fire action creator');
+    },800),
   handleChange: function (e) {
     console.log(e);
-    console.log(e.target.value);
-    this.setState({ value: e.target.value });
-    this._searchOnServer(e.target.value);
+    console.log( e.target.value );
+        this.setState({value: e.target.value});
+        this._searchOnServer(e.target.value);
   },
   render: function () {
     var state = this.state;
-    return React.createElement('input', { placeholder: 'type and see console', type: 'text', value: state.value, onChange: this.handleChange });
+    return (
+      <input placeholder="type and see console" type="text" value={state.value} onChange={this.handleChange} />
+    );
   }
 });
 
 var InputDebounceTest = React.createClass({
-  displayName: 'InputDebounceTest',
-
   getInitialState: function () {
     console.log('getting the initial state');
     return {
       value: ''
     };
   },
-  handleChange: function (value, success) {
-    console.log("input test says:");
-    console.log(value, success);
+  handleChange: function (value,success) {
+    console.log("input test says:")
+    console.log(value,success);
   },
   render: function () {
-    console.log('Rendering InputDebounceTest');
+    console.log('Rendering InputDebounceTest')
     var state = this.state;
     var price = 100;
-    return React.createElement(InputPriceDebounceC, { initialValue: price, onChange: this.handleChange });
+    return (
+      <InputPriceDebounceC initialValue={price} onChange={this.handleChange} />
+    );
   }
 });
+*/
 
 /*
 var FBCallbackC = React.createClass({
@@ -46099,12 +46133,12 @@ ReactDOM.render(React.createElement(
     React.createElement(Route, { path: '/doctorlist', component: DoctorListC, onEnter: requireAdmin }),
     React.createElement(Route, { path: '/doctors', component: DoctorsC }),
     React.createElement(Route, { path: '/info', component: InfoC }),
-    React.createElement(Route, { path: '/main', component: FilterPriceC }),
+    React.createElement(Route, { path: '/test', component: BidC }),
     React.createElement(Route, { path: '*', component: NoMatch })
   )
 ), document.getElementById('main'));
 
-},{"./../app/authentication":1,"./AuthContainerC":423,"./BugEdit":425,"./BugList":427,"./DoctorInputC":428,"./DoctorListC":429,"./DoctorsC":433,"./FBCallbackC":434,"./FilterPriceC":435,"./InfoC":438,"./InputPriceDebounceC":439,"./LandingPageC":440,"./ResetC":443,"./SignupC":446,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-dom":232,"react-router":281}],423:[function(require,module,exports){
+},{"./../app/authentication":1,"./AuthContainerC":423,"./BidC":424,"./BugEdit":427,"./BugList":429,"./DoctorInputC":430,"./DoctorListC":431,"./DoctorsC":435,"./FBCallbackC":436,"./InfoC":440,"./LandingPageC":442,"./ResetC":447,"./SignupC":450,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-dom":232,"react-router":281}],423:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 var auth = require('./../app/authentication');
@@ -46148,6 +46182,487 @@ module.exports = AuthContainerC;
 },{"./../app/authentication":1,"react":416,"react-dom":232}],424:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
+var $ = require('jquery');
+var Link = require('react-router').Link;
+var aux = require('./../app/aux');
+
+var Panel = require('react-bootstrap/lib/Panel');
+var Table = require('react-bootstrap/lib/Table');
+var Image = require('react-bootstrap/lib/Image');
+var Col = require('react-bootstrap/lib/Col');
+var Row = require('react-bootstrap/lib/Row');
+var Button = require('react-bootstrap/lib/Button');
+
+var BidC = React.createClass({
+  displayName: 'BidC',
+
+  getInitialState: function () {
+    return { error: false,
+      errorMessage: '',
+      doctors: [] };
+  },
+  listToListString: function (list) {
+    var outString = '';
+    for (var i = 0; i < list.length; i++) {
+      outString += list[i] + ', ';
+    }
+    outString = outString.substring(0, outString.length - 2);
+    return outString;
+  },
+  render: function () {
+    var nameStyle = {
+      fontSize: 1.5 + "em",
+      fontFamily: "Roboto",
+      fontWeight: "300",
+      color: "#636C7C"
+    };
+    var procedureStyle = {
+      fontSize: 1 + "em",
+      fontStyle: "italic",
+      fontFamily: "Calibri",
+      fontWeight: "bold",
+      color: "#000000",
+      textAlign: "center"
+    };
+    var specialtiesStyle = {
+      fontSize: 1 + "em",
+      fontStyle: "italic",
+      fontFamily: "Calibri",
+      fontWeight: "bold",
+      color: "#000000"
+    };
+    var priceStyle = {
+      fontSize: 1.75 + "em",
+      fontFamily: "Calibri",
+      fontWeight: "bold",
+      color: "#000000",
+      textAlign: "left"
+    };
+    var valStyle = {
+      fontSize: 1 + "em",
+      fontFamily: "Roboto",
+      color: "#000000"
+    };
+    var respondButtonStyle = {
+      fontFamily: "Roboto",
+      fontWeight: "300",
+      backgroundColor: "#0066CC",
+      color: "#ffffff",
+      fontSize: 1.25 + "em",
+      padding: "0.75em 1.5em",
+      WebkitBorderRadius: "0.5em",
+      MozBorderRadius: "0.5em",
+      borderRadius: "0.5em",
+      width: "8em"
+    };
+    var removeButtonStyle = {
+      fontFamily: "Roboto",
+      fontWeight: "300",
+      backgroundColor: "#CC0000",
+      color: "#ffffff",
+      fontSize: 1.25 + "em",
+      padding: "0.75em 1.5em",
+      WebkitBorderRadius: "0.5em",
+      MozBorderRadius: "0.5em",
+      borderRadius: "0.5em",
+      width: "8em"
+    };
+
+    /*
+          <Col xs={2} sm={2} md={2} lg={2}>
+            <Image style={{backgroundColor:"white"}} 
+              src={"./img/bigArrow.png"} responsive />  
+          </Col>
+    
+    
+    
+    
+    
+              <Row style={{marginTop:"0em",marginLeft:"1em",marginRight:"1em",marginBottom:"0em"}>
+          <Col xs={10} sm={10} md={10} lg={10}>
+            <Panel style={{backgroundColor:"#ffffff",
+              marginTop:"0.25em",marginBottom:"0.25em"}}>
+              <Col xs={3} sm={3} md={3} lg={3}>
+                <Image style={{backgroundColor:"white"}} 
+                  src={this.props.imgPath} responsive />
+              </Col>
+              <Col xs={5} sm={5} md={5} lg={5}>
+                <Row>
+                  <Col xs={6} sm={6} md={6} lg={6}>
+                    <div style={nameStyle}>{this.props.doctorName+", MD"}</div>
+                  </Col>
+                  <Col xs={6} sm={6} md={6} lg={6}>
+                    <div style={priceStyle}>
+                      {'Est. ~$'+this.props.price}
+                    </div>
+                  </Col>
+                </Row>
+                <Row>
+                  <div style={valStyle}>
+                    {this.props.message}
+                  </div>
+                </Row>
+              </Col>
+              <Col xs={4} sm={4} md={4} lg={4}>
+                <Row>
+                  <Button style={respondButtonStyle}>
+                    Respond
+                  </Button>
+                </Row>
+                <Row>
+                  <Button style={removeButtonStyle}>
+                    Remove
+                  </Button>
+                </Row>
+              </Col>
+            </Panel>
+          </Col>
+        </Row>
+    */
+    console.log('Rendering BidC');
+    return React.createElement(
+      Row,
+      { style: { marginTop: "0em", marginLeft: "1em", marginRight: "1em", marginBottom: "0em" } },
+      React.createElement(
+        Col,
+        { xs: 2, sm: 2, md: 2, lg: 2 },
+        React.createElement(Image, { style: { backgroundColor: "white", padding: "3em 0em 0em 3em" },
+          src: "./img/bigArrow.png", responsive: true })
+      ),
+      React.createElement(
+        Col,
+        { xs: 10, sm: 10, md: 10, lg: 10 },
+        React.createElement(
+          Panel,
+          { style: { backgroundColor: "#ffffff",
+              marginTop: "0.25em", marginBottom: "0.25em" } },
+          React.createElement(
+            Col,
+            { xs: 3, sm: 3, md: 3, lg: 3 },
+            React.createElement(Image, { style: { backgroundColor: "white" },
+              src: this.props.imgPath, responsive: true })
+          ),
+          React.createElement(
+            Col,
+            { xs: 6, sm: 6, md: 6, lg: 6 },
+            React.createElement(
+              Row,
+              null,
+              React.createElement(
+                Col,
+                { xs: 6, sm: 6, md: 6, lg: 6 },
+                React.createElement(
+                  'div',
+                  { style: nameStyle },
+                  this.props.doctorName + ", MD"
+                )
+              ),
+              React.createElement(
+                Col,
+                { xs: 6, sm: 6, md: 6, lg: 6 },
+                React.createElement(
+                  'div',
+                  { style: priceStyle },
+                  'Est. ~$' + this.props.price
+                )
+              )
+            ),
+            React.createElement(
+              Row,
+              null,
+              React.createElement(
+                'div',
+                { style: valStyle },
+                this.props.message
+              )
+            )
+          ),
+          React.createElement(
+            Col,
+            { xs: 3, sm: 3, md: 3, lg: 3 },
+            React.createElement(
+              'div',
+              { style: { marginLeft: "1em", marginTop: "1em" } },
+              React.createElement(
+                Row,
+                null,
+                React.createElement(
+                  Button,
+                  { style: respondButtonStyle },
+                  'Respond'
+                )
+              ),
+              React.createElement(
+                Row,
+                null,
+                React.createElement(
+                  Button,
+                  { style: removeButtonStyle },
+                  'Remove'
+                )
+              )
+            )
+          )
+        )
+      )
+    );
+  }
+});
+
+module.exports = BidC;
+
+},{"./../app/aux":2,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/Image":198,"react-bootstrap/lib/Panel":216,"react-bootstrap/lib/Row":217,"react-bootstrap/lib/Table":220,"react-dom":232,"react-router":281}],425:[function(require,module,exports){
+var React = require('react');
+var ReactDOM = require('react-dom');
+var $ = require('jquery');
+var auth = require('./../app/authentication');
+
+var Input = require('react-bootstrap/lib/Input');
+var ButtonInput = require('react-bootstrap/lib/ButtonInput');
+var Panel = require('react-bootstrap/lib/Panel');
+var Table = require('react-bootstrap/lib/Table');
+var Image = require('react-bootstrap/lib/Image');
+var Col = require('react-bootstrap/lib/Col');
+var Grid = require('react-bootstrap/lib/Grid');
+var Row = require('react-bootstrap/lib/Row');
+var Glyphicon = require('react-bootstrap/lib/Glyphicon');
+var Button = require('react-bootstrap/lib/Button');
+
+var BidC = require('./BidC');
+
+var BidsC = React.createClass({
+  displayName: 'BidsC',
+
+
+  render: function () {
+    console.log('Rendering BidsC');
+    var keyStyle = {
+      fontSize: 1 + "em",
+      fontFamily: "Roboto",
+      fontWeight: "bold",
+      color: "#103853"
+    };
+    var valStyle = {
+      fontSize: 1 + "em",
+      fontFamily: "Roboto",
+      color: "#000000"
+    };
+    var dateStyle = {
+      fontSize: 1 + "em",
+      fontStyle: "italic",
+      fontFamily: "Calibri",
+      color: "#000000",
+      textAlign: "right",
+      marginTop: "2em"
+    };
+    var bigStyle = {
+      fontSize: 2.5 + "em",
+      fontFamily: "Calibri",
+      color: "#0066CC"
+    };
+    var backButtonStyle = {
+      backgroundColor: "#0971BA",
+      color: "#ffffff"
+    };
+    console.log('got to return');
+    return React.createElement(
+      Grid,
+      { fluid: true },
+      React.createElement(
+        Row,
+        { style: { marginTop: "1em", marginLeft: "0.0em" } },
+        React.createElement(
+          Col,
+          null,
+          React.createElement(
+            Button,
+            { bsSize: 'small', style: backButtonStyle,
+              onClick: this.props.handleBackToProfile },
+            React.createElement(Glyphicon, { glyph: 'menu-left' }),
+            'Return to profile'
+          )
+        )
+      ),
+      React.createElement(
+        Row,
+        { style: { marginTop: "2em", marginLeft: "1em", marginRight: "1em", marginBottom: "0em" } },
+        React.createElement(
+          Panel,
+          null,
+          React.createElement(
+            Col,
+            { xs: 2, sm: 2, md: 2, lg: 2, style: { marginLeft: "0em" } },
+            React.createElement(Image, { style: { backgroundColor: "white" },
+              src: './img/profilePicture2.png', responsive: true, thumbnail: true })
+          ),
+          React.createElement(
+            Col,
+            { xs: 8, sm: 7, md: 6, lg: 5 },
+            React.createElement(
+              Col,
+              { xs: 4, sm: 4, md: 4, lg: 4 },
+              React.createElement(
+                'div',
+                { style: keyStyle },
+                React.createElement(
+                  'ul',
+                  { style: { listStyleType: "none", paddingLeft: "0em" } },
+                  React.createElement(
+                    'li',
+                    null,
+                    'Age:'
+                  ),
+                  React.createElement(
+                    'li',
+                    null,
+                    'Gender:'
+                  ),
+                  React.createElement(
+                    'li',
+                    null,
+                    'Procedure:'
+                  ),
+                  React.createElement(
+                    'li',
+                    null,
+                    'Location:'
+                  ),
+                  React.createElement(
+                    'li',
+                    null,
+                    'Medical allergies:'
+                  ),
+                  React.createElement(
+                    'li',
+                    null,
+                    'Budgeted price:'
+                  )
+                )
+              )
+            ),
+            React.createElement(
+              Col,
+              { xs: 8, sm: 8, md: 8, lg: 8 },
+              React.createElement(
+                'div',
+                { style: valStyle },
+                React.createElement(
+                  'ul',
+                  { style: { listStyleType: "none" } },
+                  React.createElement(
+                    'li',
+                    null,
+                    '27'
+                  ),
+                  React.createElement(
+                    'li',
+                    null,
+                    'Male'
+                  ),
+                  React.createElement(
+                    'li',
+                    null,
+                    'Rhinoplasty'
+                  ),
+                  React.createElement(
+                    'li',
+                    null,
+                    'New York'
+                  ),
+                  React.createElement(
+                    'li',
+                    null,
+                    'None'
+                  ),
+                  React.createElement(
+                    'li',
+                    null,
+                    '$4,000-$5,000'
+                  )
+                )
+              )
+            )
+          ),
+          React.createElement(
+            Col,
+            { xs: 2, sm: 3, md: 4, lg: 5 },
+            React.createElement(
+              Row,
+              null,
+              React.createElement(
+                'span',
+                { style: keyStyle },
+                'Request:'
+              ),
+              React.createElement(
+                'span',
+                { style: valStyle },
+                " Looking to remove the noticeable bridge on my nose. If possible, would also like to make the width of my nose half an inch smaller. I am relatively healthy and have no prior medical complications."
+              )
+            ),
+            React.createElement(
+              Row,
+              null,
+              React.createElement(
+                'div',
+                { style: dateStyle },
+                'Last edited: 4/10/16'
+              )
+            )
+          )
+        )
+      ),
+      React.createElement(
+        Row,
+        { style: { marginTop: "0em", marginLeft: "1em", marginRight: "1em", marginBottom: "0em" } },
+        React.createElement(
+          'div',
+          { style: bigStyle },
+          'Proposals from doctors in your area'
+        )
+      ),
+      React.createElement(BidC, { imgPath: "./img/doctor1.png", doctorName: "Irvin L.",
+        price: "4000", message: "Hi Bob, I’m happy to help. Your case seems relatively straightforward to me and are similar to the last few cases I’ve performed. Provided there are no complications when I do your physical scan, I believe I’d be able to complete your surgery for $4,000. Please come in for a consult!" }),
+      React.createElement(BidC, { imgPath: "./img/doctor2.png", doctorName: "Vicky A.",
+        price: "4500", message: "Dear Bob, I really believe I can help you achieve the look you want. This is a relatively straightforward surgery for doctors who have done this before. I personally have performed this type of surgery at least 20 times in the last year and am invested in making this work!" }),
+      React.createElement(BidC, { imgPath: "./img/doctor3.png", doctorName: "Andrew W.",
+        price: "5000", message: "Hi Bob, I specialize in rhinoplasties and have performed over 1,000 procedures in my last 25 years of practice. I can almost guarantee that you’ll have a positive outcome. If you are unsatisfied, I have always offered my repeat customers a deep discount. Please contact me." })
+    );
+  }
+
+});
+
+/*
+        <Row style={{marginTop:"1em",marginLeft:"0.0em"}}>
+          <Col>
+            <Button bsSize="small" style={backButtonStyle}
+              onClick={this.props.handleBackToProfile}>
+              <Glyphicon glyph="menu-left" />
+              Return to profile
+            </Button>
+          </Col>
+        </Row>
+
+
+
+
+        <BidC imgPath={"./img/doctor1.png"} doctorName={"Irvin L."}
+        price={"4000"} message={"Hi Bob, I’m happy to help. Your case seems relatively straightforward to me and are similar to the last few cases I’ve performed. Provided there are no complications when I do your physical scan, I believe I’d be able to complete your surgery for $4,000. Please come in for a consult!"}/>
+
+        <BidC imgPath={"./img/doctor2.png"} doctorName={"Vicky A."}
+        price={"4500"} message={"Dear Bob, I really believe I can help you achieve the look you want. This is a relatively straightforward surgery for doctors who have done this before. I personally have performed this type of surgery at least 20 times in the last year and am invested in making this work!"}/>
+
+        <BidC imgPath={"./img/doctor3.png"} doctorName={"Andrew W."}
+        price={"5000"} message={"Hi Bob, I specialize in rhinoplasties and have performed over 1,000 procedures in my last 25 years of practice. I can almost guarantee that you’ll have a positive outcome. If you are unsatisfied, I have always offered my repeat customers a deep discount. Please contact me."}/>
+
+*/
+
+//{this.state.error ? this.state.errorMessage : 'No error'}
+module.exports = BidsC;
+
+},{"./../app/authentication":1,"./BidC":424,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/ButtonInput":184,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/Glyphicon":196,"react-bootstrap/lib/Grid":197,"react-bootstrap/lib/Image":198,"react-bootstrap/lib/Input":199,"react-bootstrap/lib/Panel":216,"react-bootstrap/lib/Row":217,"react-bootstrap/lib/Table":220,"react-dom":232}],426:[function(require,module,exports){
+var React = require('react');
+var ReactDOM = require('react-dom');
 
 var Panel = require('react-bootstrap/lib/Panel');
 var Input = require('react-bootstrap/lib/Input');
@@ -46183,7 +46698,7 @@ var BugAdd = React.createClass({
 
 module.exports = BugAdd;
 
-},{"react":416,"react-bootstrap/lib/ButtonInput":184,"react-bootstrap/lib/Input":199,"react-bootstrap/lib/Panel":216,"react-dom":232}],425:[function(require,module,exports){
+},{"react":416,"react-bootstrap/lib/ButtonInput":184,"react-bootstrap/lib/Input":199,"react-bootstrap/lib/Panel":216,"react-dom":232}],427:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 var $ = require('jquery');
@@ -46346,7 +46861,7 @@ var BugEdit = React.createClass({
 
 module.exports = BugEdit;
 
-},{"./NavBarC":441,"jquery":108,"react":416,"react-bootstrap/lib/Alert":181,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/ButtonToolbar":185,"react-bootstrap/lib/Input":199,"react-bootstrap/lib/Panel":216,"react-dom":232,"react-router":281}],426:[function(require,module,exports){
+},{"./NavBarC":443,"jquery":108,"react":416,"react-bootstrap/lib/Alert":181,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/ButtonToolbar":185,"react-bootstrap/lib/Input":199,"react-bootstrap/lib/Panel":216,"react-dom":232,"react-router":281}],428:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 
@@ -46475,7 +46990,7 @@ var BugFilter = React.createClass({
 
 module.exports = BugFilter;
 
-},{"react":416,"react-bootstrap/lib/ButtonInput":184,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/Grid":197,"react-bootstrap/lib/Input":199,"react-bootstrap/lib/Panel":216,"react-bootstrap/lib/Row":217,"react-dom":232}],427:[function(require,module,exports){
+},{"react":416,"react-bootstrap/lib/ButtonInput":184,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/Grid":197,"react-bootstrap/lib/Input":199,"react-bootstrap/lib/Panel":216,"react-bootstrap/lib/Row":217,"react-dom":232}],429:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 var $ = require('jquery');
@@ -46662,7 +47177,7 @@ var BugList = React.createClass({
 
 module.exports = BugList;
 
-},{"./BugAdd":424,"./BugFilter":426,"./NavBarC":441,"jquery":108,"react":416,"react-bootstrap/lib/Panel":216,"react-bootstrap/lib/Table":220,"react-dom":232,"react-router":281}],428:[function(require,module,exports){
+},{"./BugAdd":426,"./BugFilter":428,"./NavBarC":443,"jquery":108,"react":416,"react-bootstrap/lib/Panel":216,"react-bootstrap/lib/Table":220,"react-dom":232,"react-router":281}],430:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 var $ = require('jquery');
@@ -47007,7 +47522,7 @@ var DoctorInputC = React.createClass({
 //{this.state.error ? this.state.errorMessage : 'No error'}
 module.exports = DoctorInputC;
 
-},{"./../app/authentication":1,"./../app/aux":2,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/ButtonInput":184,"react-bootstrap/lib/Input":199,"react-bootstrap/lib/Table":220,"react-dom":232}],429:[function(require,module,exports){
+},{"./../app/authentication":1,"./../app/aux":2,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/ButtonInput":184,"react-bootstrap/lib/Input":199,"react-bootstrap/lib/Table":220,"react-dom":232}],431:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 var $ = require('jquery');
@@ -47276,7 +47791,7 @@ var DoctorListC = React.createClass({
 
 module.exports = DoctorListC;
 
-},{"./../app/aux":2,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/Input":199,"react-bootstrap/lib/Panel":216,"react-bootstrap/lib/Table":220,"react-dom":232,"react-router":281}],430:[function(require,module,exports){
+},{"./../app/aux":2,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/Input":199,"react-bootstrap/lib/Panel":216,"react-bootstrap/lib/Table":220,"react-dom":232,"react-router":281}],432:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 var $ = require('jquery');
@@ -47391,12 +47906,6 @@ var DoctorProfileC = React.createClass({
         )
       );
     });
-
-    React.createElement(
-      Row,
-      null,
-      React.createElement(Col, null)
-    );
 
     return React.createElement(
       Grid,
@@ -47567,7 +48076,7 @@ var DoctorProfileC = React.createClass({
 
 module.exports = DoctorProfileC;
 
-},{"./../app/aux":2,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/Glyphicon":196,"react-bootstrap/lib/Grid":197,"react-bootstrap/lib/Image":198,"react-bootstrap/lib/Panel":216,"react-bootstrap/lib/Row":217,"react-bootstrap/lib/Table":220,"react-dom":232,"react-router":281}],431:[function(require,module,exports){
+},{"./../app/aux":2,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/Glyphicon":196,"react-bootstrap/lib/Grid":197,"react-bootstrap/lib/Image":198,"react-bootstrap/lib/Panel":216,"react-bootstrap/lib/Row":217,"react-bootstrap/lib/Table":220,"react-dom":232,"react-router":281}],433:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 var $ = require('jquery');
@@ -47674,7 +48183,7 @@ var DoctorResultC = React.createClass({
 
 module.exports = DoctorResultC;
 
-},{"./../app/aux":2,"jquery":108,"react":416,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/Image":198,"react-bootstrap/lib/Panel":216,"react-bootstrap/lib/Table":220,"react-dom":232,"react-router":281}],432:[function(require,module,exports){
+},{"./../app/aux":2,"jquery":108,"react":416,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/Image":198,"react-bootstrap/lib/Panel":216,"react-bootstrap/lib/Table":220,"react-dom":232,"react-router":281}],434:[function(require,module,exports){
 // This is the center panel of the results tab
 
 var React = require('react');
@@ -47811,7 +48320,7 @@ var DoctorResultsC = React.createClass({
 
 module.exports = DoctorResultsC;
 
-},{"./../app/aux":2,"./DoctorResultC":431,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/ButtonToolbar":185,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/Glyphicon":196,"react-bootstrap/lib/Grid":197,"react-bootstrap/lib/Panel":216,"react-bootstrap/lib/Row":217,"react-bootstrap/lib/Table":220,"react-dom":232,"react-router":281}],433:[function(require,module,exports){
+},{"./../app/aux":2,"./DoctorResultC":433,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/ButtonToolbar":185,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/Glyphicon":196,"react-bootstrap/lib/Grid":197,"react-bootstrap/lib/Panel":216,"react-bootstrap/lib/Row":217,"react-bootstrap/lib/Table":220,"react-dom":232,"react-router":281}],435:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 var $ = require('jquery');
@@ -48030,7 +48539,7 @@ var DoctorsC = React.createClass({
 
 module.exports = DoctorsC;
 
-},{"./../app/aux":2,"jquery":108,"react":416,"react-bootstrap/lib/Panel":216,"react-bootstrap/lib/Table":220,"react-dom":232,"react-router":281}],434:[function(require,module,exports){
+},{"./../app/aux":2,"jquery":108,"react":416,"react-bootstrap/lib/Panel":216,"react-bootstrap/lib/Table":220,"react-dom":232,"react-router":281}],436:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 var $ = require('jquery');
@@ -48071,7 +48580,7 @@ var FBCallbackC = React.createClass({
 
 module.exports = FBCallbackC;
 
-},{"./../app/authentication":1,"jquery":108,"react":416,"react-dom":232}],435:[function(require,module,exports){
+},{"./../app/authentication":1,"jquery":108,"react":416,"react-dom":232}],437:[function(require,module,exports){
 var React = require('react');
 var Input = require('react-bootstrap/lib/Input');
 var aux = require('./../app/aux');
@@ -48135,7 +48644,7 @@ var FilterPriceC = React.createClass({
 
 module.exports = FilterPriceC;
 
-},{"./../app/aux":2,"./InputPriceDebounceC":439,"react":416,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/Input":199,"react-bootstrap/lib/Row":217}],436:[function(require,module,exports){
+},{"./../app/aux":2,"./InputPriceDebounceC":441,"react":416,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/Input":199,"react-bootstrap/lib/Row":217}],438:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 var $ = require('jquery');
@@ -48340,7 +48849,7 @@ var ForgotModalC = React.createClass({
 
 module.exports = ForgotModalC;
 
-},{"./../app/authentication":1,"./FullscreenC":437,"./SearchBoxC":445,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/ButtonGroup":183,"react-bootstrap/lib/ButtonInput":184,"react-bootstrap/lib/ButtonToolbar":185,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/DropdownButton":189,"react-bootstrap/lib/Grid":197,"react-bootstrap/lib/Image":198,"react-bootstrap/lib/Input":199,"react-bootstrap/lib/MenuItem":201,"react-bootstrap/lib/Modal":202,"react-bootstrap/lib/Row":217,"react-dom":232,"react-router":281}],437:[function(require,module,exports){
+},{"./../app/authentication":1,"./FullscreenC":439,"./SearchBoxC":449,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/ButtonGroup":183,"react-bootstrap/lib/ButtonInput":184,"react-bootstrap/lib/ButtonToolbar":185,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/DropdownButton":189,"react-bootstrap/lib/Grid":197,"react-bootstrap/lib/Image":198,"react-bootstrap/lib/Input":199,"react-bootstrap/lib/MenuItem":201,"react-bootstrap/lib/Modal":202,"react-bootstrap/lib/Row":217,"react-dom":232,"react-router":281}],439:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 
@@ -48369,7 +48878,7 @@ var FullscreenC = React.createClass({
     if (this.props.backgroundImage) {
       fullscreenStyle = {
         backgroundColor: 'black',
-        position: 'fixed',
+        position: 'absolute',
         padding: 0,
         margin: 0,
         top: 0,
@@ -48382,7 +48891,7 @@ var FullscreenC = React.createClass({
     } else if (this.props.backgroundColor) {
       fullscreenStyle = {
         backgroundColor: this.props.backgroundColor,
-        position: 'fixed',
+        position: 'absolute',
         padding: 0,
         margin: 0,
         top: 0,
@@ -48394,7 +48903,7 @@ var FullscreenC = React.createClass({
     } else {
       fullscreenStyle = {
         backgroundColor: 'black',
-        position: 'fixed',
+        position: 'absolute',
         padding: 0,
         margin: 0,
         top: 0,
@@ -48468,7 +48977,7 @@ var LandingPage = React.createClass({
 */
 module.exports = FullscreenC;
 
-},{"react":416,"react-dom":232}],438:[function(require,module,exports){
+},{"react":416,"react-dom":232}],440:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 var $ = require('jquery');
@@ -48501,6 +49010,9 @@ var DoctorsC = require('./DoctorsC');
 var ResultsC = require('./ResultsC');
 var DoctorProfileC = require('./DoctorProfileC');
 var QuoteC = require('./QuoteC');
+var ProfileC = require('./ProfileC');
+var RequestC = require('./RequestC');
+var BidsC = require('./BidsC');
 
 var InfoC = React.createClass({
   displayName: 'InfoC',
@@ -48559,6 +49071,8 @@ var InfoC = React.createClass({
       procedure: '',
       showDoctorList: true,
       showDoctorProfile: true,
+      showProfile: true,
+      showRequest: false,
       doctor: {}
     };
     if (query.city) state.city = query.city;
@@ -48638,6 +49152,28 @@ var InfoC = React.createClass({
     console.log('We went back from quote');
     this.setState({ showDoctorProfile: true });
   },
+
+  handleRequestClick: function (e) {
+    e.preventDefault();
+    console.log('Go to request');
+    this.setState({ showProfile: false, showRequest: true });
+  },
+  handleBidsClick: function (e) {
+    e.preventDefault();
+    console.log('Go to bids');
+    this.setState({ showProfile: false, showRequest: false });
+  },
+  handleSendClick: function (e) {
+    e.preventDefault();
+    console.log('Sent request');
+    this.setState({ showProfile: true, showRequest: false });
+  },
+  handleBackToProfile: function (e) {
+    e.preventDefault();
+    console.log('Go back to profile');
+    this.setState({ showProfile: true, showRequest: false });
+  },
+
   sortByPrice: function (ascending, procedure, doctors) {
     var prices = [];
     for (var i = 0; i < doctors.length; i++) {
@@ -48929,7 +49465,10 @@ var InfoC = React.createClass({
           React.createElement(
             'div',
             { style: { backgroundColor: "white" } },
-            'Tab 2 content'
+            this.state.showProfile ? React.createElement(ProfileC, { handleRequestClick: this.handleRequestClick,
+              handleBidsClick: this.handleBidsClick }) : this.state.showRequest ? React.createElement(RequestC, { procedures: procedureList,
+              handleSendClick: this.handleSendClick,
+              handleBackToProfile: this.handleBackToProfile }) : React.createElement(BidsC, { handleBackToProfile: this.handleBackToProfile })
           )
         )
       )
@@ -48973,7 +49512,7 @@ var LandingPage = React.createClass({
 
 module.exports = InfoC;
 
-},{"./../app/authentication":1,"./../app/aux":2,"./DoctorProfileC":430,"./DoctorsC":433,"./ForgotModalC":436,"./FullscreenC":437,"./QuoteC":442,"./ResultsC":444,"./SearchBoxC":445,"./WelcomeModalC":447,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/ButtonGroup":183,"react-bootstrap/lib/ButtonToolbar":185,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/DropdownButton":189,"react-bootstrap/lib/Glyphicon":196,"react-bootstrap/lib/Grid":197,"react-bootstrap/lib/Input":199,"react-bootstrap/lib/MenuItem":201,"react-bootstrap/lib/Modal":202,"react-bootstrap/lib/Row":217,"react-bootstrap/lib/Tab":219,"react-bootstrap/lib/Tabs":221,"react-dom":232,"react-router":281}],439:[function(require,module,exports){
+},{"./../app/authentication":1,"./../app/aux":2,"./BidsC":425,"./DoctorProfileC":432,"./DoctorsC":435,"./ForgotModalC":438,"./FullscreenC":439,"./ProfileC":444,"./QuoteC":445,"./RequestC":446,"./ResultsC":448,"./SearchBoxC":449,"./WelcomeModalC":451,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/ButtonGroup":183,"react-bootstrap/lib/ButtonToolbar":185,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/DropdownButton":189,"react-bootstrap/lib/Glyphicon":196,"react-bootstrap/lib/Grid":197,"react-bootstrap/lib/Input":199,"react-bootstrap/lib/MenuItem":201,"react-bootstrap/lib/Modal":202,"react-bootstrap/lib/Row":217,"react-bootstrap/lib/Tab":219,"react-bootstrap/lib/Tabs":221,"react-dom":232,"react-router":281}],441:[function(require,module,exports){
 var React = require('react');
 var Input = require('react-bootstrap/lib/Input');
 var aux = require('./../app/aux');
@@ -49032,7 +49571,7 @@ var InputPriceDebounceC = React.createClass({
 
 module.exports = InputPriceDebounceC;
 
-},{"./../app/aux":2,"react":416,"react-bootstrap/lib/Input":199}],440:[function(require,module,exports){
+},{"./../app/aux":2,"react":416,"react-bootstrap/lib/Input":199}],442:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 var $ = require('jquery');
@@ -49434,7 +49973,7 @@ var LandingPage = React.createClass({
 
 module.exports = LandingPageC;
 
-},{"./../app/authentication":1,"./ForgotModalC":436,"./FullscreenC":437,"./SearchBoxC":445,"./WelcomeModalC":447,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/ButtonGroup":183,"react-bootstrap/lib/ButtonToolbar":185,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/DropdownButton":189,"react-bootstrap/lib/Grid":197,"react-bootstrap/lib/Input":199,"react-bootstrap/lib/MenuItem":201,"react-bootstrap/lib/Row":217,"react-dom":232,"react-router":281}],441:[function(require,module,exports){
+},{"./../app/authentication":1,"./ForgotModalC":438,"./FullscreenC":439,"./SearchBoxC":449,"./WelcomeModalC":451,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/ButtonGroup":183,"react-bootstrap/lib/ButtonToolbar":185,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/DropdownButton":189,"react-bootstrap/lib/Grid":197,"react-bootstrap/lib/Input":199,"react-bootstrap/lib/MenuItem":201,"react-bootstrap/lib/Row":217,"react-dom":232,"react-router":281}],443:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 //var $ = require('jquery');
@@ -49503,7 +50042,255 @@ var NavBarC = React.createClass({
 
 module.exports = NavBarC;
 
-},{"react":416,"react-bootstrap/lib/Nav":208,"react-bootstrap/lib/NavItem":210,"react-bootstrap/lib/Navbar":211,"react-dom":232}],442:[function(require,module,exports){
+},{"react":416,"react-bootstrap/lib/Nav":208,"react-bootstrap/lib/NavItem":210,"react-bootstrap/lib/Navbar":211,"react-dom":232}],444:[function(require,module,exports){
+var React = require('react');
+var ReactDOM = require('react-dom');
+var $ = require('jquery');
+var Link = require('react-router').Link;
+var aux = require('./../app/aux');
+
+var Panel = require('react-bootstrap/lib/Panel');
+var Table = require('react-bootstrap/lib/Table');
+var Image = require('react-bootstrap/lib/Image');
+var Col = require('react-bootstrap/lib/Col');
+var Grid = require('react-bootstrap/lib/Grid');
+var Row = require('react-bootstrap/lib/Row');
+var Glyphicon = require('react-bootstrap/lib/Glyphicon');
+var Button = require('react-bootstrap/lib/Button');
+
+var ProfileC = React.createClass({
+  displayName: 'ProfileC',
+
+  getInitialState: function () {
+    return { error: false,
+      errorMessage: '',
+      doctors: [] };
+  },
+  listToListString: function (list) {
+    var outString = '';
+    for (var i = 0; i < list.length; i++) {
+      outString += list[i] + ', ';
+    }
+    outString = outString.substring(0, outString.length - 2);
+    return outString;
+  },
+  render: function () {
+    var keyStyle = {
+      fontSize: 1 + "em",
+      fontFamily: "Roboto",
+      fontWeight: "bold",
+      color: "#103853"
+    };
+    var valStyle = {
+      fontSize: 1 + "em",
+      fontFamily: "Roboto",
+      color: "#000000"
+    };
+    var dateStyle = {
+      fontSize: 1 + "em",
+      fontStyle: "italic",
+      fontFamily: "Calibri",
+      color: "#000000"
+    };
+    var secondStyle = {
+      fontSize: 1.25 + "em",
+      fontFamily: "Calibri",
+      color: "#000000"
+    };
+    var thirdStyle = {
+      fontSize: 1.5 + "em",
+      fontFamily: "Calibri",
+      fontWeight: "bold",
+      color: "#000000"
+    };
+    var fourthStyle = {
+      fontSize: 1.5 + "em",
+      fontFamily: "Calibri",
+      color: "#000000"
+    };
+    var fifthStyle = {
+      fontSize: 1 + "em",
+      fontFamily: "Calibri",
+      color: "#000000"
+    };
+    var sixthStyle = {
+      fontSize: 1 + "em",
+      fontFamily: "Calibri",
+      color: "#000000",
+      fontStyle: "italic"
+    };
+    var seventhStyle = {
+      fontSize: 1.75 + "em",
+      fontStyle: "italic",
+      fontFamily: "Calibri",
+      color: "#000000"
+    };
+
+    var backButtonStyle = {
+      backgroundColor: "#0971BA",
+      color: "#ffffff"
+    };
+    var quoteButtonStyle = {
+      fontFamily: "Roboto",
+      fontWeight: "300",
+      backgroundColor: "#0971BA",
+      color: "#ffffff",
+      fontSize: 1.75 + "em",
+      padding: "1em 2em",
+      WebkitBorderRadius: "0.5em",
+      MozBorderRadius: "0.5em",
+      borderRadius: "0.5em",
+      width: "12em"
+    };
+
+    return React.createElement(
+      Grid,
+      { fluid: true },
+      React.createElement(
+        Row,
+        { style: { marginTop: "2em", marginLeft: "1em",
+            marginRight: "1em", marginBottom: "2em" } },
+        React.createElement(
+          Col,
+          { xs: 2, sm: 2, md: 2, lg: 2, style: { marginLeft: "0em" } },
+          React.createElement(Image, { style: { backgroundColor: "white" },
+            src: './img/profilePicture2.png', responsive: true, thumbnail: true }),
+          React.createElement(
+            'div',
+            { style: dateStyle },
+            'Last edited: 4/10/16'
+          )
+        ),
+        React.createElement(
+          Col,
+          { xs: 8, sm: 7, md: 6, lg: 5 },
+          React.createElement(
+            Col,
+            { xs: 4, sm: 4, md: 4, lg: 4 },
+            React.createElement(
+              'div',
+              { style: keyStyle },
+              React.createElement(
+                'ul',
+                { style: { listStyleType: "none", paddingLeft: "0em" } },
+                React.createElement(
+                  'li',
+                  null,
+                  'Name:'
+                ),
+                React.createElement(
+                  'li',
+                  null,
+                  'Age:'
+                ),
+                React.createElement(
+                  'li',
+                  null,
+                  'Gender:'
+                ),
+                React.createElement(
+                  'li',
+                  null,
+                  'Procedure:'
+                ),
+                React.createElement(
+                  'li',
+                  null,
+                  'Location:'
+                ),
+                React.createElement(
+                  'li',
+                  null,
+                  'Medical allergies:'
+                ),
+                React.createElement(
+                  'li',
+                  null,
+                  'Budgeted price:'
+                )
+              )
+            )
+          ),
+          React.createElement(
+            Col,
+            { xs: 8, sm: 8, md: 8, lg: 8 },
+            React.createElement(
+              'div',
+              { style: valStyle },
+              React.createElement(
+                'ul',
+                { style: { listStyleType: "none" } },
+                React.createElement(
+                  'li',
+                  null,
+                  'Bob'
+                ),
+                React.createElement(
+                  'li',
+                  null,
+                  '27'
+                ),
+                React.createElement(
+                  'li',
+                  null,
+                  'Male'
+                ),
+                React.createElement(
+                  'li',
+                  null,
+                  'Rhinoplasty'
+                ),
+                React.createElement(
+                  'li',
+                  null,
+                  'New York'
+                ),
+                React.createElement(
+                  'li',
+                  null,
+                  'None'
+                ),
+                React.createElement(
+                  'li',
+                  null,
+                  '$4,000-$5,000'
+                )
+              )
+            )
+          )
+        ),
+        React.createElement(
+          Col,
+          { xs: 2, sm: 3, md: 4, lg: 5 },
+          React.createElement(
+            Row,
+            null,
+            React.createElement(
+              Button,
+              { bsSize: 'large', style: quoteButtonStyle,
+                onClick: this.props.handleRequestClick },
+              'Create Request'
+            )
+          ),
+          React.createElement(
+            Row,
+            null,
+            React.createElement(
+              Button,
+              { bsSize: 'large', style: quoteButtonStyle,
+                onClick: this.props.handleBidsClick },
+              'View My Bids'
+            )
+          )
+        )
+      )
+    );
+  }
+});
+
+module.exports = ProfileC;
+
+},{"./../app/aux":2,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/Glyphicon":196,"react-bootstrap/lib/Grid":197,"react-bootstrap/lib/Image":198,"react-bootstrap/lib/Panel":216,"react-bootstrap/lib/Row":217,"react-bootstrap/lib/Table":220,"react-dom":232,"react-router":281}],445:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 var $ = require('jquery');
@@ -49792,7 +50579,295 @@ var QuoteC = React.createClass({
 //{this.state.error ? this.state.errorMessage : 'No error'}
 module.exports = QuoteC;
 
-},{"./../app/authentication":1,"./../app/aux":2,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/ButtonInput":184,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/Glyphicon":196,"react-bootstrap/lib/Grid":197,"react-bootstrap/lib/Input":199,"react-bootstrap/lib/Row":217,"react-bootstrap/lib/Table":220,"react-dom":232}],443:[function(require,module,exports){
+},{"./../app/authentication":1,"./../app/aux":2,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/ButtonInput":184,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/Glyphicon":196,"react-bootstrap/lib/Grid":197,"react-bootstrap/lib/Input":199,"react-bootstrap/lib/Row":217,"react-bootstrap/lib/Table":220,"react-dom":232}],446:[function(require,module,exports){
+var React = require('react');
+var ReactDOM = require('react-dom');
+var $ = require('jquery');
+var auth = require('./../app/authentication');
+var aux = require('./../app/aux');
+
+var Input = require('react-bootstrap/lib/Input');
+var Button = require('react-bootstrap/lib/Button');
+var ButtonInput = require('react-bootstrap/lib/ButtonInput');
+var Table = require('react-bootstrap/lib/Table');
+
+var Grid = require('react-bootstrap/lib/Grid');
+var Row = require('react-bootstrap/lib/Row');
+var Col = require('react-bootstrap/lib/Col');
+var Glyphicon = require('react-bootstrap/lib/Glyphicon');
+
+var RequestC = React.createClass({
+  displayName: 'RequestC',
+
+  contextTypes: {
+    router: React.PropTypes.object.isRequired
+  },
+  procedureList: ["Liposuction", "Eye lift", "Rhinoplasty", "Facelift", "Brow Lift", "Chin Augmentation", "Injectables", "Tummy Tuck", "Breast augmentation", "Breast Lift", "Breast Reduction", "Breast Reconstruction", "Brazilian butt lift", "Mommy Makeover", "Arm Lift", "Body Lift"],
+  getInitialState: function () {
+    console.log(this.procedureList);
+    console.log(aux);
+    console.log(aux.escapeHTML);
+
+    var procs = [];
+    for (var i = 0; i < this.procedureList.length; i++) procs.push({ id: this.procedureList[i], selected: false, price: '0' });
+
+    return {
+      error: false,
+      errorMessage: '',
+      success: false,
+      successMessage: '',
+
+      name: '',
+      numandstreet: '',
+      city: '',
+      state: '',
+      zip: '',
+      phone: '',
+      url: '',
+      procedures: procs
+    };
+  },
+  handleChange: function (e) {
+    console.log(e.target);
+    console.log(e.target.value);
+    console.log(e.target.name);
+    console.log(e.target.label);
+
+    console.log(e.target.checked);
+  },
+  changeSelection: function (id) {
+    var procs = this.state.procedures.map(function (d) {
+      return {
+        id: d.id,
+        selected: d.id === id ? !d.selected : d.selected,
+        price: d.price
+      };
+    });
+
+    this.setState({ procedures: procs });
+  },
+  changePrice: function (id, e) {
+    var procs = this.state.procedures.map(function (d) {
+      return {
+        id: d.id,
+        selected: d.selected,
+        price: d.id === id ? e.target.value : d.price
+      };
+    });
+
+    this.setState({ procedures: procs });
+  },
+  changeAllChecks: function (e) {
+    var value = e.target.checked;
+    console.log(value);
+    console.log(this.refs.globalSelector);
+    var state = this.state.procedures.map(function (d) {
+      return { id: d.id, selected: value, price: d.price };
+    });
+
+    this.setState({ procedures: state });
+  },
+  validateAndPrepState: function (state) {
+    var procArr = [],
+        priceArr = [];
+    var regexPrice = /^[+-]?\d+(\.\d+)?$/;
+    var regexZip = /^[0-9]{5}$/;
+    var regexPhone = /^[0-9]{10}$/;
+    var regexURL = /[-a-zA-Z0-9@:%_\+.~#?&\/\/=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)?/i;
+    var regexState = /^([a-zA-Z]){2}$/;
+
+    var escapedZip = aux.escapeHTML(this.refs.zip.getValue());
+    var escapedPhone = aux.escapeHTML(this.refs.phone.getValue());
+    var escapedState = aux.escapeHTML(this.refs.state.getValue());
+
+    if (!regexZip.test(escapedZip)) return { success: false, obj: this.refs.zip.getValue() };
+
+    if (!regexPhone.test(escapedPhone)) return { success: false, obj: this.refs.phone.getValue() };
+
+    if (!regexState.test(escapedState)) return { success: false, obj: this.refs.state.getValue() };
+
+    if (!regexURL.test(this.refs.url.getValue())) return { success: false, obj: this.refs.url.getValue() };
+
+    for (var i = 0; i < state.procedures.length; i++) {
+      if (state.procedures[i].selected) {
+        procArr.push(state.procedures[i].id);
+        var escapedPrice = aux.escapeHTML(state.procedures[i].price);
+        if (regexPrice.test(escapedPrice)) {
+          priceArr.push(Math.round(parseFloat(escapedPrice) * 100) / 100);
+        } else return { success: false, obj: state.procedures[i].price };
+      }
+    }
+    return { success: true, obj: {
+        name: aux.escapeHTML(this.refs.name.getValue()),
+        numandstreet: aux.escapeHTML(this.refs.numandstreet.getValue()),
+        city: aux.escapeHTML(this.refs.city.getValue()),
+        state: escapedState,
+        zip: escapedZip,
+        phone: escapedPhone,
+        url: encodeURIComponent(this.refs.url.getValue()),
+        procedures: procArr,
+        prices: priceArr
+      } };
+  },
+  submitQuote: function (e) {
+    e.preventDefault();
+    console.log('Submitted quote');
+  },
+  render: function () {
+
+    var procBosListStyle = {
+      // Font properties
+      fontSize: 1 + "em",
+      fontFamily: "Roboto",
+      fontWeight: "100",
+      color: "#b5b5b5",
+      textAlign: "left"
+    };
+    var backButtonStyle = {
+      backgroundColor: "#0971BA",
+      color: "#ffffff"
+    };
+    var topBannerStyle = {
+      backgroundColor: "#435568",
+      color: "#ffffff",
+      textAlign: "center",
+      fontSize: "1.25em",
+      padding: "0.4em",
+      margin: "0em -1.25em 1em -1.25em",
+      WebkitBorderRadius: "0.5em",
+      MozBorderRadius: "0.5em",
+      borderRadius: "0.5em",
+      fontFamily: "Roboto",
+      fontWeight: "100"
+    };
+    var formStyle = {
+      color: "#BFBFBF",
+      fontSize: "1.25em",
+      fontFamily: "Roboto",
+      fontWeight: "100",
+      fontStyle: "italic"
+    };
+    var sendButtonStyle = {
+      backgroundColor: "#8598AE",
+      fontFamily: "Calibri",
+      color: "#ffffff",
+      fontStyle: "normal",
+      fontSize: "1.25em"
+    };
+    var procedureListItems = this.props.procedures.map(function (proc, i) {
+      return React.createElement(
+        'option',
+        { value: proc },
+        proc
+      );
+    });
+
+    return React.createElement(
+      Grid,
+      { fluid: true },
+      React.createElement(
+        Row,
+        { style: { marginTop: "1em", marginLeft: "0.0em" } },
+        React.createElement(
+          Col,
+          null,
+          React.createElement(
+            Button,
+            { bsSize: 'small', style: backButtonStyle,
+              onClick: this.props.handleBackToProfile },
+            React.createElement(Glyphicon, { glyph: 'menu-left' }),
+            'Return to profile'
+          )
+        )
+      ),
+      React.createElement(
+        Row,
+        { style: { marginTop: "1em", marginLeft: "1em", marginRight: "1em", marginBottom: "4em" } },
+        React.createElement(
+          Col,
+          { xs: 4, sm: 4, md: 4, lg: 4,
+            xsOffset: 4, smOffset: 4, mdOffset: 4, lgOffset: 4,
+            style: { backgroundColor: "#D9D9D9" } },
+          React.createElement(
+            'div',
+            { style: topBannerStyle },
+            'Create a Request'
+          ),
+          React.createElement(
+            'form',
+            { onSubmit: this.props.handleSendClick, style: formStyle },
+            React.createElement(
+              Input,
+              { type: 'select', ref: 'proc', style: procBosListStyle,
+                onChange: this.handleProcSelect,
+                style: { backgroundColor: "#F2F2F2" } },
+              React.createElement(
+                'option',
+                { value: '', disabled: true, selected: true },
+                'Treatment'
+              ),
+              procedureListItems
+            ),
+            React.createElement(
+              Input,
+              { type: 'select', ref: 'decision', style: procBosListStyle,
+                onChange: this.handleProcSelect,
+                style: { backgroundColor: "#F2F2F2" } },
+              React.createElement(
+                'option',
+                { value: '', disabled: true, selected: true },
+                'Decision Stage'
+              ),
+              React.createElement(
+                'option',
+                { value: 'sure' },
+                'I am sure'
+              ),
+              React.createElement(
+                'option',
+                { value: 'questions' },
+                'I have questions'
+              ),
+              React.createElement(
+                'option',
+                { value: 'unsure' },
+                'I am unsure'
+              )
+            ),
+            React.createElement(Input, { type: 'textarea', ref: 'questions', placeholder: 'Describe What You\'re Looking For',
+              style: { backgroundColor: "#F2F2F2" } }),
+            React.createElement(Input, { type: 'text', ref: 'allergies', placeholder: 'Medical Allergies',
+              style: { backgroundColor: "#F2F2F2" } }),
+            React.createElement(Input, { type: 'text', ref: 'budget', placeholder: 'Budget',
+              style: { backgroundColor: "#F2F2F2" } }),
+            React.createElement(
+              'div',
+              { style: { color: "red" } },
+              this.state.error ? this.state.errorMessage : ''
+            ),
+            React.createElement(
+              'div',
+              { style: { color: "green" } },
+              this.state.success ? this.state.successMessage : ''
+            ),
+            React.createElement(
+              'div',
+              null,
+              React.createElement(ButtonInput, { type: 'submit', value: 'Send',
+                bsSize: 'large', block: true, style: sendButtonStyle })
+            )
+          )
+        )
+      )
+    );
+  }
+
+});
+
+//{this.state.error ? this.state.errorMessage : 'No error'}
+module.exports = RequestC;
+
+},{"./../app/authentication":1,"./../app/aux":2,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/ButtonInput":184,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/Glyphicon":196,"react-bootstrap/lib/Grid":197,"react-bootstrap/lib/Input":199,"react-bootstrap/lib/Row":217,"react-bootstrap/lib/Table":220,"react-dom":232}],447:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 var $ = require('jquery');
@@ -49922,7 +50997,7 @@ var ResetC = React.createClass({
 //{this.state.error ? this.state.errorMessage : 'No error'}
 module.exports = ResetC;
 
-},{"./../app/authentication":1,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/ButtonInput":184,"react-bootstrap/lib/Input":199,"react-dom":232}],444:[function(require,module,exports){
+},{"./../app/authentication":1,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/ButtonInput":184,"react-bootstrap/lib/Input":199,"react-dom":232}],448:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 
@@ -50022,7 +51097,7 @@ var ResultsC = React.createClass({
 
 module.exports = ResultsC;
 
-},{"./DoctorResultsC":432,"./FilterPriceC":435,"react":416,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/Grid":197,"react-bootstrap/lib/Row":217,"react-dom":232}],445:[function(require,module,exports){
+},{"./DoctorResultsC":434,"./FilterPriceC":437,"react":416,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/Grid":197,"react-bootstrap/lib/Row":217,"react-dom":232}],449:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 var Link = require('react-router').Link;
@@ -50077,7 +51152,7 @@ var SearchBoxC = React.createClass({
 
 module.exports = SearchBoxC;
 
-},{"react":416,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/Grid":197,"react-bootstrap/lib/Input":199,"react-bootstrap/lib/Row":217,"react-dom":232,"react-router":281}],446:[function(require,module,exports){
+},{"react":416,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/Grid":197,"react-bootstrap/lib/Input":199,"react-bootstrap/lib/Row":217,"react-dom":232,"react-router":281}],450:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 var $ = require('jquery');
@@ -50173,7 +51248,7 @@ var SignupC = React.createClass({
 //{this.state.error ? this.state.errorMessage : 'No error'}
 module.exports = SignupC;
 
-},{"./../app/authentication":1,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/ButtonInput":184,"react-bootstrap/lib/Input":199,"react-dom":232}],447:[function(require,module,exports){
+},{"./../app/authentication":1,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/ButtonInput":184,"react-bootstrap/lib/Input":199,"react-dom":232}],451:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 var $ = require('jquery');
@@ -50434,4 +51509,4 @@ module.exports = WelcomeModalC;
             </div>
             */
 
-},{"./../app/authentication":1,"./FullscreenC":437,"./SearchBoxC":445,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/ButtonGroup":183,"react-bootstrap/lib/ButtonInput":184,"react-bootstrap/lib/ButtonToolbar":185,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/DropdownButton":189,"react-bootstrap/lib/Grid":197,"react-bootstrap/lib/Image":198,"react-bootstrap/lib/Input":199,"react-bootstrap/lib/MenuItem":201,"react-bootstrap/lib/Modal":202,"react-bootstrap/lib/Row":217,"react-dom":232,"react-router":281}]},{},[422]);
+},{"./../app/authentication":1,"./FullscreenC":439,"./SearchBoxC":449,"jquery":108,"react":416,"react-bootstrap/lib/Button":182,"react-bootstrap/lib/ButtonGroup":183,"react-bootstrap/lib/ButtonInput":184,"react-bootstrap/lib/ButtonToolbar":185,"react-bootstrap/lib/Col":186,"react-bootstrap/lib/DropdownButton":189,"react-bootstrap/lib/Grid":197,"react-bootstrap/lib/Image":198,"react-bootstrap/lib/Input":199,"react-bootstrap/lib/MenuItem":201,"react-bootstrap/lib/Modal":202,"react-bootstrap/lib/Row":217,"react-dom":232,"react-router":281}]},{},[422]);

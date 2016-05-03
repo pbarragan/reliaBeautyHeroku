@@ -654,8 +654,20 @@ app.put('/api/bugs/:id', function(req, res) {
     app.get('/api/doctors/filter', function(req,res) {
         console.log("Query string", req.query);
         var filter = {};
+
+        // The old way where you actually search for a city
+        //if (req.query.city)
+        //    filter.city = req.query.city;
+
+        // The new way where you convert city to state
         if (req.query.city)
-            filter.city = req.query.city;
+            if(filter.city === "Boston")
+                filter.state = "MA";
+            else if(filter.city === "Los Angeles")
+                filter.state = "CA";
+            else if(filter.city === "New York")
+                filter.state = "NY";
+
         // search array of procedures as follows
         if (req.query.procedure)
             filter.procedures = req.query.procedure;

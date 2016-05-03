@@ -15,6 +15,31 @@ module.exports = {
     });
   },
 
+/*
+  unescapeHTML(string) {
+  var entityMap = {
+    "&amp;": "&",
+    "&lt;": "<",
+    "&gt;": ">",
+    '&quot;': '"',
+    '&#39;': "'",
+    '&#x2F;': "/"
+  };
+    return String(string).replace(/[&<>"'\/]/g, function (s) {
+      return entityMap[s];
+    });
+  },
+*/
+  unescapeHTML(value){
+    return String(value)
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&amp;/g, '&')
+        .replace(/&#x2F;/g,"/");
+  },
+
   arrayMax(numArray) {
     return Math.max.apply(null, numArray);
   },
@@ -189,6 +214,18 @@ module.exports = {
         headers: {'x-access-token':localStorage.token}
       })
       .then(function (data)  {
+
+          //see if this works
+          for(var i=0; i<data.doctors.length;i++){
+            data.doctors[i].name = this.unescapeHTML(data.doctors[i].name);
+            data.doctors[i].numandstreet = this.unescapeHTML(data.doctors[i].numandstreet);
+            data.doctors[i].city = this.unescapeHTML(data.doctors[i].city);
+            data.doctors[i].education = this.unescapeHTML(data.doctors[i].education);
+            data.doctors[i].hospaff = this.unescapeHTML(data.doctors[i].hospaff);
+            data.doctors[i].specialties = this.unescapeHTML(data.doctors[i].specialties);
+          }
+
+
           console.log(data);
           if (cb) cb(true,data);
         },

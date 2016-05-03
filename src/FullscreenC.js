@@ -27,7 +27,7 @@ var FullscreenC = React.createClass({
     if(this.props.backgroundImage){
     fullscreenStyle = {
       backgroundColor: 'black',
-      position: 'fixed',  
+      position: 'absolute',  
       padding:0,
       margin:0,
       top:0,
@@ -41,7 +41,7 @@ var FullscreenC = React.createClass({
     else if(this.props.backgroundColor){
     fullscreenStyle = {
       backgroundColor: this.props.backgroundColor,
-      position: 'fixed',  
+      position: 'absolute',  
       padding:0,
       margin:0,
       top:0,
@@ -54,7 +54,7 @@ var FullscreenC = React.createClass({
     else{
     fullscreenStyle = {
       backgroundColor: 'black',
-      position: 'fixed',  
+      position: 'absolute',  
       padding:0,
       margin:0,
       top:0,

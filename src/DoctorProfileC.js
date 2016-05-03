@@ -110,11 +110,6 @@ var DoctorProfileC = React.createClass({
       )
     });
 
-                <Row>
-              <Col>
-              </Col>
-            </Row>
-
     return (
       <Grid fluid>
         <Row style={{marginTop:"1em",marginLeft:"0.0em"}}>
